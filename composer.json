@@ -1,0 +1,18 @@
+{
+	"name": "b13/assetcollector",
+	"type": "typo3-cms-extension",
+	"description": "Add CSS and SVG files and strings as inline style tag/inline svg to the html code.",
+	"replace": {
+		"assetcollector": "self.version"
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "assetcollector"
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"B13\\Assetcollector\\": "Classes/"
+		}
+	}
+}
