@@ -35,7 +35,7 @@ This only includes the icons needed on a given page as inline SVG symbols in one
 ### Examples
 
 ```
-<ac:svg file="EXT:myext/Resources/Public/Svg/myIconFile.svg"/>
+<ac:svg file="EXT:myext/Resources/Public/Svg/myIconFile.svg" class="b_myIconClass"/>
 ```
 This adds the svg inline code to your template output
 
