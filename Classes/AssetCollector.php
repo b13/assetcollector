@@ -149,7 +149,7 @@ class AssetCollector implements SingletonInterface
             }
         }
         if (trim($inlineCss) !== '') {
-            return '<style>' . $inlineCss . '</style>';
+            return '<style>' . $this->compressCssString($inlineCss) . '</style>';
         } else {
             return '';
         }
@@ -204,6 +204,57 @@ class AssetCollector implements SingletonInterface
         $bom = pack('H*', 'EFBBBF');
         $text = preg_replace("/^$bom/", '', $text);
         return $text;
+    }
+
+    /**
+     * Compress a CSS string by removing comments and whitespace characters
+     * Taken from /typo3/sysext/core/Classes/Resource/ResourceCompressor.php:667
+     *
+     * @param string $contents
+     * @return string
+     */
+    protected function compressCssString($contents)
+    {
+        // Perform some safe CSS optimizations.
+        // Regexp to match comment blocks.
+        $comment = '/\*[^*]*\*+(?:[^/*][^*]*\*+)*/';
+        // Regexp to match double quoted strings.
+        $double_quot = '"[^"\\\\]*(?:\\\\.[^"\\\\]*)*"';
+        // Regexp to match single quoted strings.
+        $single_quot = "'[^'\\\\]*(?:\\\\.[^'\\\\]*)*'";
+        // Strip all comment blocks, but keep double/single quoted strings.
+        $contents = preg_replace(
+            "<($double_quot|$single_quot)|$comment>Ss",
+            '$1',
+            $contents
+        );
+        // Remove certain whitespace.
+        // There are different conditions for removing leading and trailing
+        // whitespace.
+        // @see http://php.net/manual/regexp.reference.subpatterns.php
+        $contents = preg_replace(
+            '<
+				# Strip leading and trailing whitespace.
+				\s*([@{};,])\s*
+				# Strip only leading whitespace from:
+				# - Closing parenthesis: Retain "@media (bar) and foo".
+				| \s+([\)])
+				# Strip only trailing whitespace from:
+				# - Opening parenthesis: Retain "@media (bar) and foo".
+				# - Colon: Retain :pseudo-selectors.
+				| ([\(:])\s+
+				>xS',
+            // Only one of the three capturing groups will match, so its reference
+            // will contain the wanted value and the references for the
+            // two non-matching groups will be replaced with empty strings.
+            '$1$2$3',
+            $contents
+        );
+        // End the file with a new line.
+        $contents = trim($contents);
+        // Ensure file ends in newline.
+        $contents .= LF;
+        return $contents;
     }
 
 }
