@@ -31,6 +31,8 @@ namespace B13\Assetcollector;
 
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use B13\Assetcollector\Resource\ResourceCompressor;
+
 
 /**
  * Class AssetCollector
@@ -149,7 +151,8 @@ class AssetCollector implements SingletonInterface
             }
         }
         if (trim($inlineCss) !== '') {
-            return '<style>' . $inlineCss . '</style>';
+            $compressor = GeneralUtility::makeInstance(ResourceCompressor::class);
+            return '<style>' . $compressor->publicCompressCssString($inlineCss) . '</style>';
         } else {
             return '';
         }
