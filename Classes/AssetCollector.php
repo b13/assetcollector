@@ -32,7 +32,9 @@ namespace B13\Assetcollector;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use B13\Assetcollector\Resource\ResourceCompressor;
-
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 
 /**
  * Class AssetCollector
@@ -207,6 +209,23 @@ class AssetCollector implements SingletonInterface
         $bom = pack('H*', 'EFBBBF');
         $text = preg_replace("/^$bom/", '', $text);
         return $text;
+    }
+
+    /**
+     * Function returns the value for given TypoScript key.
+     *
+     * @param string $name
+     * @return string
+     */
+    public function getTypoScriptValue($name)
+    {
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        $configurationManager = $objectManager->get(ConfigurationManager::class);
+        $extbaseFrameworkConfiguration = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
+        if (key_exists($name, $extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'])) {
+            return $extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'][$name];
+        }
+        return '';
     }
 
 }

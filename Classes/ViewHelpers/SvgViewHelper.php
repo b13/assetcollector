@@ -68,7 +68,13 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
             'file',
             'string',
             'svg file name',
-            true
+            false
+        );
+        $this->registerArgument(
+            'name',
+            'string',
+            'SVG file name from TypoScript setup.',
+            false
         );
     }
 
@@ -77,11 +83,20 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
      */
     public function render()
     {
-        if (!empty($this->arguments['file'])) {
-            $this->assetCollector->addXmlFile($this->arguments['file']);
+        if ($this->arguments['name']) {
+            $file = $this->assetCollector->getTypoScriptValue($this->arguments['name']);
+        }
+        if (!$file && !empty($this->arguments['file'])) {
+            $file = $this->arguments['file'];
+        }
+        if (!$file) {
+            return '';
         }
 
-        $iconIdentifier = $this->assetCollector->getIconIdentifierFromFileName($this->arguments['file']);
+        $file = $this->assetCollector->getTypoScriptValue($this->arguments['name']) ?? $this->arguments['file'] ?? '';
+
+        $this->assetCollector->addXmlFile($file);
+        $iconIdentifier = $this->assetCollector->getIconIdentifierFromFileName($file);
         $content = '<use xlink:href="#icon-' . $iconIdentifier . '"></use>';
 
         $this->tag->forceClosingTag(true);
