@@ -59,6 +59,11 @@ class AssetCollector implements SingletonInterface
     protected $xmlFiles = [];
 
     /**
+     * @var ?array
+     */
+    protected $typoScriptConfiguration = null;
+
+    /**
      * @param string $inlineCss
      */
     public function addInlineCss(string $inlineCss): void
@@ -219,13 +224,45 @@ class AssetCollector implements SingletonInterface
      */
     public function getTypoScriptValue(string $name): string
     {
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        $configurationManager = $objectManager->get(ConfigurationManager::class);
-        $extbaseFrameworkConfiguration = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
-        if (!empty($extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'][$name])) {
-            return $extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'][$name];
+        if ($this->typoScriptConfiguration === null) {
+            $this->loadTypoScript();
+        }
+        if (!empty($this->typoScriptConfiguration[$name])) {
+            return (string)$this->typoScriptConfiguration[$name];
         }
         return '';
+    }
+
+    /**
+     * @return void
+     */
+    protected function loadTypoScript(): void
+    {
+        $extbaseFrameworkConfiguration = $this->getExbaseFrameworkConfiguration();
+        if ($extbaseFrameworkConfiguration !== null) {
+            $this->typoScriptConfiguration = $extbaseFrameworkConfiguration;
+        } else {
+            $this->typoScriptConfiguration = [];
+        }
+    }
+
+    /**
+     * @return ?array
+     */
+    protected function getExbaseFrameworkConfiguration(): ?array
+    {
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        $configurationManager = $objectManager->get(ConfigurationManager::class);
+        try {
+            $extbaseFrameworkConfiguration = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
+            if (is_array($extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'])) {
+                return $extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'];
+            }
+        } catch (\TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException $e) {
+
+        }
+        return null;
+
     }
 
 }
