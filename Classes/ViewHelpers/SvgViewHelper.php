@@ -29,6 +29,7 @@ namespace B13\Assetcollector\ViewHelpers;
 
 
 use B13\Assetcollector\AssetCollector;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -81,19 +82,18 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
     /**
      * @return String rendered tag
      */
-    public function render()
+    public function render(): string
     {
-        if ($this->arguments['name']) {
-            $file = $this->assetCollector->getTypoScriptValue($this->arguments['name']);
+        $file = '';
+        if (!empty($this->arguments['name'])) {
+            $file = $this->assetCollector->getTypoScriptValue((string)$this->arguments['name']);
         }
-        if (!$file && !empty($this->arguments['file'])) {
+        if ($file === '' && !empty($this->arguments['file'])) {
             $file = $this->arguments['file'];
         }
-        if (!$file) {
+        if ($file === '') {
             return '';
         }
-
-        $file = $this->assetCollector->getTypoScriptValue($this->arguments['name']) ?? $this->arguments['file'] ?? '';
 
         $this->assetCollector->addXmlFile($file);
         $iconIdentifier = $this->assetCollector->getIconIdentifierFromFileName($file);
