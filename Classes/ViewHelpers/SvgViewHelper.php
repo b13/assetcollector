@@ -87,17 +87,16 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
         $file = '';
         if (!empty($this->arguments['name'])) {
             $file = $this->assetCollector->getTypoScriptValue((string)$this->arguments['name']);
-            $iconIdentifier = $this->arguments['name'];
         }
         if ($file === '' && !empty($this->arguments['file'])) {
             $file = $this->arguments['file'];
-            $iconIdentifier = $this->assetCollector->getIconIdentifierFromFileName($file);
         }
         if ($file === '') {
             return '';
         }
 
         $this->assetCollector->addXmlFile($file);
+        $iconIdentifier = $this->assetCollector->getIconIdentifierFromFileName($file);
         $content = '<use xlink:href="#icon-' . $iconIdentifier . '"></use>';
 
         $this->tag->forceClosingTag(true);
