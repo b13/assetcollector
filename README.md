@@ -24,6 +24,14 @@ This includes the content of `myCssFile.css` inline as a style block in the HTML
 ```
 This adds the string `.b_example { color: red; }` to the inline style block in the HTML head of the document.
 
+Remember to add the Fluid namespace to your Fluid templates (or do this globally, see below):
+
+```
+<html xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers"
+			xmlns:ac="http://typo3.org/ns/B13/Assetcollector/ViewHelpers"
+			data-namespace-typo3-fluid="true"
+>
+```
 
 ## SVG Map inliner
 
@@ -78,4 +86,12 @@ All `<symbol>` sections will be wrapped:
     <symbol></symbol> 	
   </defs>
 </svg>
+```
+
+## Global registering of Fluid Namespace
+
+If you want to register the fluid namespace globally, add this to your site extensions `ext_localconf.php`:
+
+```
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['fluid']['namespaces']['ac'][] = 'B13\Assetcollector\ViewHelpers';
 ```
