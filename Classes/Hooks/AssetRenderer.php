@@ -32,7 +32,6 @@ use B13\Assetcollector\AssetCollector;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
@@ -57,14 +56,10 @@ class AssetRenderer implements SingletonInterface
             if (!empty($cached['inlineCss']) && is_array($cached['inlineCss'])) {
                 $assetCollector->mergeInlineCss($cached['inlineCss']);
             }
-            if (!empty($cached['xmlFiles']) && is_array($cached['xmlFiles'])) {
-                $assetCollector->mergeXmlFiles($cached['xmlFiles']);
-            }
             $params['headerData'] = array_merge(
                 $params['headerData'],
                 [$assetCollector->buildInlineCssTag()]
             );
-            $params['bodyContent'] .= $assetCollector->buildInlineXmlTag();
         }
     }
 
