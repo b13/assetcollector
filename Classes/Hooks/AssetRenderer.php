@@ -89,19 +89,6 @@ class AssetRenderer implements SingletonInterface
     }
 
     /**
-     * @param $params
-     * @param PageRenderer $pageRenderer
-     */
-    public function insertInlineSvgMap($params, PageRenderer $pageRenderer): void
-    {
-        if ($this->getTypoScriptFrontendController() instanceof TypoScriptFrontendController) {
-            $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $inlineSvg = $assetCollector->buildInlineXmlTag();
-            $params['bodyContent'] .= $inlineSvg;
-        }
-    }
-
-    /**
      * @return mixed|TypoScriptFrontendController
      */
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController

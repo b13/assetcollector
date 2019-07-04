@@ -28,10 +28,18 @@ namespace B13\Assetcollector\Resource;
  *  THE SOFTWARE.
  ***************************************************************/
 
-
+/**
+ * Class ResourceCompressor
+ * @package B13\Assetcollector\Resource
+ */
 class ResourceCompressor extends \TYPO3\CMS\Core\Resource\ResourceCompressor {
 
-    public function publicCompressCssString($content) {
+    /**
+     * @param $content
+     * @return string
+     */
+    public function publicCompressCssString(string $content): string
+    {
         return $this->compressCssString($content);
     }
 }

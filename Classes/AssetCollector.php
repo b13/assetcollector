@@ -32,7 +32,10 @@ namespace B13\Assetcollector;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use B13\Assetcollector\Resource\ResourceCompressor;
-
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Class AssetCollector
@@ -57,9 +60,14 @@ class AssetCollector implements SingletonInterface
     protected $xmlFiles = [];
 
     /**
+     * @var ?array
+     */
+    protected $typoScriptConfiguration = null;
+
+    /**
      * @param string $inlineCss
      */
-    public function addInlineCss($inlineCss): void
+    public function addInlineCss(string $inlineCss): void
     {
         $this->inlineCss[] = $inlineCss;
     }
@@ -67,7 +75,7 @@ class AssetCollector implements SingletonInterface
     /**
      * @param string $cssFile
      */
-    public function addCssFile($cssFile): void
+    public function addCssFile(string $cssFile): void
     {
         $this->cssFiles[] = GeneralUtility::getFileAbsFileName($cssFile);
     }
@@ -123,7 +131,7 @@ class AssetCollector implements SingletonInterface
     /**
      * @param string $xmlFile
      */
-    public function addXmlFile($xmlFile): void
+    public function addXmlFile(string $xmlFile): void
     {
         $this->xmlFiles[] = GeneralUtility::getFileAbsFileName($xmlFile);
     }
@@ -133,7 +141,7 @@ class AssetCollector implements SingletonInterface
      * @param string $xmlFile
      * @@return string
      */
-    public function getIconIdentifierFromFileName($xmlFile): string
+    public function getIconIdentifierFromFileName(string $xmlFile): string
     {
         return str_replace('.svg', '', basename($xmlFile));
     }
@@ -202,11 +210,60 @@ class AssetCollector implements SingletonInterface
      * @param string $text
      * @return string
      */
-    protected function removeUtf8Bom($text): string
+    protected function removeUtf8Bom(string $text): string
     {
         $bom = pack('H*', 'EFBBBF');
         $text = preg_replace("/^$bom/", '', $text);
         return $text;
+    }
+
+    /**
+     * Function returns the value for given TypoScript key.
+     *
+     * @param string $name
+     * @return string
+     */
+    public function getTypoScriptValue(string $name): string
+    {
+        if ($this->typoScriptConfiguration === null) {
+            $this->loadTypoScript();
+        }
+        if (!empty($this->typoScriptConfiguration[$name])) {
+            return (string)$this->typoScriptConfiguration[$name];
+        }
+        return '';
+    }
+
+    /**
+     * @return void
+     */
+    protected function loadTypoScript(): void
+    {
+        $extbaseFrameworkConfiguration = $this->getExbaseFrameworkConfiguration();
+        if ($extbaseFrameworkConfiguration !== null) {
+            $this->typoScriptConfiguration = $extbaseFrameworkConfiguration;
+        } else {
+            $this->typoScriptConfiguration = [];
+        }
+    }
+
+    /**
+     * @return ?array
+     */
+    protected function getExbaseFrameworkConfiguration(): ?array
+    {
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        $configurationManager = $objectManager->get(ConfigurationManager::class);
+        try {
+            $extbaseFrameworkConfiguration = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
+            if (is_array($extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'])) {
+                return $extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'];
+            }
+        } catch (\TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException $e) {
+
+        }
+        return null;
+
     }
 
 }
