@@ -61,7 +61,7 @@ only once (correctly so) in the SVG map.
 #### Using a name/identifier set in your TypoScript setup
 
 ```
-plugin.tx_assetcollector.settings.icons {
+plugin.tx_assetcollector.icons {
   iconName = EXT:myext/Resources/Public/Svg/myIconFile.svg
 }
 ```
