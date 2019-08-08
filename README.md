@@ -67,7 +67,7 @@ plugin.tx_assetcollector.settings.icons {
 ```
 
 ```
-<ac:svg name="iconName" class="b_myIconClass">
+<ac:svg name="iconName" class="b_myIconClass" />
 ```
 
 This will add the svg inline code to your template output using `iconName` as an identifier.
