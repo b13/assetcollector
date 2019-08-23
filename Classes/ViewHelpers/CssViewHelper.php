@@ -64,6 +64,17 @@ class CssViewHelper extends AbstractViewHelper
             'css file name',
             false
         );
+        $this->registerArgument(
+            'external',
+            'boolean',
+            'Specifies if the given CSS file should be loaded within link tag.'
+
+        );
+        $this->registerArgument(
+            'media',
+            'string',
+            'Specifies the value for the media attribute. Default is "all".'
+        );
     }
 
     /**
@@ -72,7 +83,15 @@ class CssViewHelper extends AbstractViewHelper
     public function render(): void
     {
         if (!empty($this->arguments['file'])) {
-            $this->assetCollector->addCssFile($this->arguments['file']);
+            if (!empty($this->arguments['external'])) {
+                if (!empty($this->arguments['media'])) {
+                    $this->assetCollector->addExternalCssFile($this->arguments['file'], $this->arguments['media']);
+                } else {
+                    $this->assetCollector->addExternalCssFile($this->arguments['file']);
+                }
+            } else {
+                $this->assetCollector->addCssFile($this->arguments['file']);
+            }
         } else {
             $this->assetCollector->addInlineCss($this->renderChildren());
         }

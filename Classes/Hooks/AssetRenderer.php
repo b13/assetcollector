@@ -89,6 +89,20 @@ class AssetRenderer implements SingletonInterface
     }
 
     /**
+     * Hook to add all external CSS files specified in assetcollector view helpers to page renderer.
+     *
+     * @param $params
+     * @param PageRenderer $pageRenderer
+     */
+    public function collectCssFiles($params, PageRenderer $pageRenderer): void
+    {
+        $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
+        foreach ($assetCollector->getUniqueExternalCssFiles() as $cssFile) {
+            $pageRenderer->addCssFile($cssFile['fileName'], 'stylesheet', $cssFile['mediaType'], '', false, false, '', true);
+        }
+    }
+
+    /**
      * @return mixed|TypoScriptFrontendController
      */
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
