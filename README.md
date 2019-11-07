@@ -27,11 +27,39 @@ This adds the string `.b_example { color: red; }` to the inline style block in t
 Remember to add the Fluid namespace to your Fluid templates (or do this globally, see below):
 
 ```
-<html xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers"
-			xmlns:ac="http://typo3.org/ns/B13/Assetcollector/ViewHelpers"
-			data-namespace-typo3-fluid="true"
+<html 
+    xmlns:f="http://typo3.org/ns/TYPO3/Fluid/ViewHelpers"
+    xmlns:ac="http://typo3.org/ns/B13/Assetcollector/ViewHelpers"
+    data-namespace-typo3-fluid="true"
 >
 ```
+
+## CSS file include
+
+The include option is useful for including CSS files as externally referenced files based on content of your pages.
+Depending on the size of the CSS and the number of pages the same CSS is used inlining the CSS into the page might not
+be the best option. To include a CSS file across all pages of your installation could result in including way too much
+CSS for some of your content pages. 
+
+The ViewHelper for including CSS can be used to include CSS files within your Fluid Templates as external files by 
+adding `external="1"`. This adds the CSS file reference to the `<head>` part of your `<html>` document:
+
+```
+<ac:css file="EXT:myext/Resources/Public/Css/myCssFile.css" external="1" />
+```
+
+This will add the following code within the `<head>` of your document:
+
+```
+<link rel="stylesheet" type="text/css" href="/typo3conf/ext/myext/Resources/Public/Css/myCssFile.css" media="all">
+```
+
+You can also specify a value for the `media` argument:
+
+``` 
+<ac:css file="EXT:myext/Resources/Public/Css/myCssFile.css" external="1" media="print" />
+```
+
 
 ## SVG Map inliner
 
@@ -61,13 +89,13 @@ only once (correctly so) in the SVG map.
 #### Using a name/identifier set in your TypoScript setup
 
 ```
-plugin.tx_assetcollector.settings.icons {
+plugin.tx_assetcollector.icons {
   iconName = EXT:myext/Resources/Public/Svg/myIconFile.svg
 }
 ```
 
 ```
-<ac:svg name="iconName" class="b_myIconClass">
+<ac:svg name="iconName" class="b_myIconClass" />
 ```
 
 This will add the svg inline code to your template output using `iconName` as an identifier.

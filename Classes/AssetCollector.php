@@ -60,6 +60,13 @@ class AssetCollector implements SingletonInterface
     protected $xmlFiles = [];
 
     /**
+     * Array of CSS files which are appended in link tag in head element.
+     *
+     * @var array
+     */
+    protected $externalCssFiles = [];
+
+    /**
      * @var ?array
      */
     protected $typoScriptConfiguration = null;
@@ -78,6 +85,24 @@ class AssetCollector implements SingletonInterface
     public function addCssFile(string $cssFile): void
     {
         $this->cssFiles[] = GeneralUtility::getFileAbsFileName($cssFile);
+    }
+
+    /**
+     * @param string $fileName
+     * @param string $mediaType
+     */
+    public function addExternalCssFile(string $fileName, string $mediaType = 'all'): void
+    {
+        // Only add external css file if not added already.
+        foreach ($this->externalCssFiles as $cssFile) {
+            if ($cssFile['fileName'] == $fileName) {
+                return;
+            }
+        }
+        $this->externalCssFiles[] = [
+            'fileName' => $fileName,
+            'mediaType' => $mediaType,
+        ];
     }
 
     /**
@@ -134,6 +159,14 @@ class AssetCollector implements SingletonInterface
     public function addXmlFile(string $xmlFile): void
     {
         $this->xmlFiles[] = GeneralUtility::getFileAbsFileName($xmlFile);
+    }
+
+    /**
+     * @return array
+     */
+    public function getUniqueExternalCssFiles(): array
+    {
+        return $this->externalCssFiles;
     }
 
     /**
