@@ -107,7 +107,10 @@ class AssetRenderer implements SingletonInterface
      */
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
     {
-        return $GLOBALS['TSFE'];
+        if ($GLOBALS['TSFE'] instanceof TyposcriptFrontendController) {
+            return $GLOBALS['TSFE'];
+        } else {
+            return null;
+        }
     }
-
 }
