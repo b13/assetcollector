@@ -1,5 +1,5 @@
 <?php
-$EM_CONF['assetcollector'] = [
+$EM_CONF[$_EXTKEY] = [
     'title' => 'Asset collector',
     'description' => 'Add CSS and SVG files and strings as inline style tag/inline svg to the html code.',
     'category' => 'fe',
