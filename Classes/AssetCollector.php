@@ -13,6 +13,7 @@ namespace B13\Assetcollector;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use B13\Assetcollector\Resource\ResourceCompressor;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
@@ -180,7 +181,10 @@ class AssetCollector implements SingletonInterface
                     $attributeCode[] = htmlspecialchars($name);
                 }
             }
-            $includes .= '<script src="' . htmlspecialchars($file['fileName']) . '"' . (!empty($attributeCode) ? ' ' . implode(' ', $attributeCode) : '') . '></script>';
+            $webPath = (strpos($file['fileName'], 'EXT:') === 0)
+                ? PathUtility::getAbsoluteWebPath(GeneralUtility::getFileAbsFileName(($file['fileName'])))
+                : $file['fileName'];
+            $includes .= '<script src="' . htmlspecialchars($webPath) . '"' . (!empty($attributeCode) ? ' ' . implode(' ', $attributeCode) : '') . '></script>';
         }
         return $includes;
     }
