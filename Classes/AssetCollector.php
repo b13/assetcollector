@@ -16,7 +16,6 @@ use B13\Assetcollector\Resource\ResourceCompressor;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Main collector class to be used everywhere
@@ -74,13 +73,27 @@ class AssetCollector implements SingletonInterface
     {
         // Only add external css file if not added already.
         foreach ($this->externalCssFiles as $cssFile) {
-            if ($cssFile['fileName'] == $fileName) {
+            if ($cssFile['fileName'] === $fileName) {
                 return;
             }
         }
         $this->externalCssFiles[] = [
             'fileName' => $fileName,
             'mediaType' => $mediaType,
+        ];
+    }
+
+    public function addJavaScriptFile(string $fileName, array $tagAttributes = null): void
+    {
+        // Only add JS file if not added already.
+        foreach ($this->jsFiles as $jsFile) {
+            if ($jsFile['fileName'] === $fileName) {
+                return;
+            }
+        }
+        $this->jsFiles[] = [
+            'fileName' => $fileName,
+            'tagAttributes' => $tagAttributes
         ];
     }
 
@@ -119,9 +132,14 @@ class AssetCollector implements SingletonInterface
         $this->xmlFiles[] = GeneralUtility::getFileAbsFileName($xmlFile);
     }
 
-    public function getUniqueExternalCssFiles(): array
+    public function getExternalCssFiles(): array
     {
         return $this->externalCssFiles;
+    }
+
+    public function getJavaScriptFiles(): array
+    {
+        return $this->jsFiles;
     }
 
     public function getIconIdentifierFromFileName(string $xmlFile): string
@@ -144,6 +162,27 @@ class AssetCollector implements SingletonInterface
         } else {
             return '';
         }
+    }
+
+    public function buildJavaScriptIncludes(): string
+    {
+        $includes = '';
+        foreach ($this->getJavaScriptFiles() as $file) {
+            if (empty($file['fileName'])) {
+                return '';
+            }
+            $attributes = $file['additionalAttributes'] ?? [];
+            $attributeCode = [];
+            foreach ($attributes as $name => $value) {
+                if ($value !== null) {
+                    $attributeCode[] = htmlspecialchars($name) . '="' . htmlspecialchars($value) . '"';
+                } else {
+                    $attributeCode[] = htmlspecialchars($name);
+                }
+            }
+            $includes .= '<script src="' . htmlspecialchars($file['fileName']) . '"' . (!empty($attributeCode) ? ' ' . implode(' ', $attributeCode) : '') . '></script>';
+        }
+        return $includes;
     }
 
     public function buildInlineXmlTag(): string
