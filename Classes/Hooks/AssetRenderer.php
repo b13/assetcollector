@@ -23,7 +23,7 @@ class AssetRenderer implements SingletonInterface
 {
 
     /**
-     * Called via PageRenderer->render-postProcess(), all our includes is added to "headerData", this is called
+     * Called via PageRenderer->render-postProcess(), all our includes are added to "headerData", this is called
      * for cacheable and non-cacheable logic.
      *
      * @param $params
