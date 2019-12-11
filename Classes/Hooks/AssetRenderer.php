@@ -53,10 +53,10 @@ class AssetRenderer implements SingletonInterface
      */
     public function insertAssets($params, PageRenderer $pageRenderer): void
     {
-        $typoScriptFrontendController = $this->getTypoScriptFrontendController();
-        if ($typoScriptFrontendController instanceof TypoScriptFrontendController) {
+        $frontendController = $this->getTypoScriptFrontendController();
+        if ($frontendController instanceof TypoScriptFrontendController) {
             $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'];
+            $cached = $frontendController->config['b13/assetcollector'];
             if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
                 $assetCollector->mergeCssFiles($cached['cssFiles']);
             }
@@ -67,6 +67,16 @@ class AssetRenderer implements SingletonInterface
                 foreach ($cached['jsFiles'] as $data) {
                     $assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
                 }
+            }
+            // Add individual registered JS files. Only relevant on first hit, fully cacheable
+            // when the cache is not accessed yet.
+            foreach ($frontendController->pSetup['jsFiles.'] as $key => $jsFile)
+            {
+                if (is_array($jsFile)) {
+                    continue;
+                }
+                $additionalAttributes = $frontendController->pSetup['jsFiles.'][$key . '.'] ?? [];
+                $assetCollector->addJavaScriptFile($jsFile, $additionalAttributes);
             }
             $params['headerData'] = array_merge(
                 $params['headerData'],

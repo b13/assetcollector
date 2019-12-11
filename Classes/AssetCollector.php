@@ -174,7 +174,7 @@ class AssetCollector implements SingletonInterface
             $attributes = $file['additionalAttributes'] ?? [];
             $attributeCode = [];
             foreach ($attributes as $name => $value) {
-                if ($value !== null) {
+                if ($value !== null && $value !== '') {
                     $attributeCode[] = htmlspecialchars($name) . '="' . htmlspecialchars($value) . '"';
                 } else {
                     $attributeCode[] = htmlspecialchars($name);
