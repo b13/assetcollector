@@ -53,7 +53,8 @@ class AssetRenderer implements SingletonInterface
      */
     public function insertAssets($params, PageRenderer $pageRenderer): void
     {
-        if ($this->getTypoScriptFrontendController() instanceof TypoScriptFrontendController) {
+        $typoScriptFrontendController = $this->getTypoScriptFrontendController();
+        if ($typoScriptFrontendController instanceof TypoScriptFrontendController) {
             $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
             $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'];
             if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
