@@ -1,7 +1,38 @@
-# EXT:assetcollector
+# Asset Collector for TYPO3
 
-This extension adds ViewHelpers to dynamically add CSS and SVG files and CSS inline strings to be added to the HTML 
-document from within Fluid Templates. 
+This extension adds ViewHelpers to dynamically add CSS, JS and SVG files and CSS inline strings to be added to the HTML 
+document from within Fluid Templates. In addition, including JS files are added via a registry
+to be only added once, which can be achieved via TypoScript as well.
+
+The main benefit over TYPO3 Core functionality is that AssetCollector API is a straightforward approach
+for integrators to not worry about having duplicate assets entries added again, and to only include the assets
+that are necessary. This way, integrators can build content types or plugins and attach only necessary
+resources to one content type, even if it was added multiple times by any editor.
+
+## Installation & Requirements
+
+Use `composer req b13/assetcollector` or install it via TYPO3's Extension Manager from the
+[TYPO3 Extension Repository](https://extensions.typo3.org) using the extension key `assetcollector`.
+
+You need TYPO3 v9 or later to use this extension.
+
+
+## JavaScript includes
+
+This is useful when adding JavaScript files via TypoScript or within a Fluid template based on content element. In contrast
+to TYPO3 Core, the following functionality is given:
+- A JavaScript resource can be added multiple times, but is only added once.
+- By having a flexible API, additional attributes such as "async" or "amp" can be added directly.
+
+All JavaScript data is always added within the "head" tag.
+
+If adding via TypoScript, the following syntax applies:
+
+    page.jsFiles {
+        analytics = https://analytics.b13.com/track.js
+        analytics.async = 1
+        analytics.data-myattribute = true
+    } 
 
 ## CSS inliner
 
@@ -123,3 +154,15 @@ If you want to register the fluid namespace globally, add this to your site exte
 ```
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['fluid']['namespaces']['ac'][] = 'B13\Assetcollector\ViewHelpers';
 ```
+
+## License
+
+The extension is licensed under GPL v2+, same as the TYPO3 Core. For details see the LICENSE file in this repository.
+
+## Open Issues
+
+If you find an issue, feel free to create an issue on GitHub or a pull request.
+
+### Credits
+
+This extension was created by [David Steeb](https://github.com/davidsteeb) in 2019 for [b13 GmbH](https://b13.com).

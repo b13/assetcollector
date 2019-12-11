@@ -17,16 +17,19 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
- * Hooks into PageRenderer to add CSS / SVG files
+ * Hooks into PageRenderer to add CSS / JS / SVG files
  */
 class AssetRenderer implements SingletonInterface
 {
 
     /**
+     * Called via PageRenderer->render-postProcess(), all our includes are added to "headerData", this is called
+     * for cacheable and non-cacheable logic.
+     *
      * @param $params
      * @param PageRenderer $pageRenderer
      */
-    public function insertInlineAssets($params, PageRenderer $pageRenderer): void
+    public function insertAssets($params, PageRenderer $pageRenderer): void
     {
         if ($this->getTypoScriptFrontendController() instanceof TypoScriptFrontendController) {
             $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
@@ -37,21 +40,48 @@ class AssetRenderer implements SingletonInterface
             if (!empty($cached['inlineCss']) && is_array($cached['inlineCss'])) {
                 $assetCollector->mergeInlineCss($cached['inlineCss']);
             }
+            if (!empty($cached['jsFiles']) && is_array($cached['jsFiles'])) {
+                foreach ($cached['jsFiles'] as $data) {
+                    $assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
+                }
+            }
             $params['headerData'] = array_merge(
                 $params['headerData'],
-                [$assetCollector->buildInlineCssTag()]
+                [$assetCollector->buildInlineCssTag(), $assetCollector->buildJavaScriptIncludes()]
             );
         }
     }
 
     /**
-     * @param $params
+     * Called via contentPostProc-all - this means, this is run at any time, even when "fully cached" or
+     * with USER_INT* objects on it.
+     *
+     * At this point, we're re-evaluating all included files from the cached information plus adding
+     * new information.
+     * Then, the full information is again stored in the "b13/assetcollector" bucket.
+     *
+     * @param array $params
      * @param TypoScriptFrontendController $frontendController
      */
     public function collectInlineAssets($params, TypoScriptFrontendController $frontendController): void
     {
-        $cached = $frontendController->config['b13/assetcollector'];
         $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
+        $cached = $frontendController->config['b13/assetcollector'];
+
+        // Add individual registered JS files
+        foreach ($frontendController->pSetup['jsFiles.'] as $key => $jsFile)
+        {
+            if (is_array($jsFile)) {
+                continue;
+            }
+            $additionalAttributes = $frontendController->pSetup['jsFiles.'][$key . '.'] ?? [];
+            $assetCollector->addJavaScriptFile($jsFile, $additionalAttributes);
+        }
+        if (!empty($cached['jsFiles']) && is_array($cached['jsFiles'])) {
+            foreach ($cached['jsFiles'] as $data) {
+                $assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
+            }
+        }
         if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
             $assetCollector->mergeCssFiles($cached['cssFiles']);
         }
@@ -62,6 +92,7 @@ class AssetRenderer implements SingletonInterface
             $assetCollector->mergeXmlFiles($cached['xmlFiles']);
         }
         $cached = [
+            'jsFiles' => $assetCollector->getJavaScriptFiles(),
             'cssFiles' => $assetCollector->getUniqueCssFiles(),
             'inlineCss' => $assetCollector->getUniqueInlineCss(),
             'xmlFiles' => $assetCollector->getUniqueXmlFiles()
@@ -71,6 +102,7 @@ class AssetRenderer implements SingletonInterface
 
     /**
      * Hook to add all external CSS files specified in assetcollector view helpers to page renderer.
+     * Called via PageRenderer->render-preProcess().
      *
      * @param $params
      * @param PageRenderer $pageRenderer
@@ -78,7 +110,7 @@ class AssetRenderer implements SingletonInterface
     public function collectCssFiles($params, PageRenderer $pageRenderer): void
     {
         $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        foreach ($assetCollector->getUniqueExternalCssFiles() as $cssFile) {
+        foreach ($assetCollector->getExternalCssFiles() as $cssFile) {
             $pageRenderer->addCssFile($cssFile['fileName'], 'stylesheet', $cssFile['mediaType'], '', false, false, '', true);
         }
     }
