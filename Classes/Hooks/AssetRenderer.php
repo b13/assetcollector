@@ -57,7 +57,7 @@ class AssetRenderer implements SingletonInterface
      * with USER_INT* objects on it.
      *
      * At this point, we're re-evaluating all included files from the cached information plus adding
-     * newly information.
+     * new information.
      * Then, the full information is again stored in the "b13/assetcollector" bucket.
      *
      * @param array $params
