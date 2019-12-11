@@ -31,7 +31,9 @@ class AssetRenderer implements SingletonInterface
      */
     public function insertAssets($params, PageRenderer $pageRenderer): void
     {
-        if ($this->getTypoScriptFrontendController() instanceof TypoScriptFrontendController) {
+        $typoScriptFrontendController = $this->getTypoScriptFrontendController();
+        if ($typoScriptFrontendController instanceof TypoScriptFrontendController) {
+            $this->collectInlineAssets($params, $typoScriptFrontendController);
             $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
             $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'];
             if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
@@ -53,7 +55,7 @@ class AssetRenderer implements SingletonInterface
     }
 
     /**
-     * Called via contentPostProc-all - this means, this is run at any time, even when "fully cached" or
+     * Called via insertAssets() - this means, this is run at any time, even when "fully cached" or
      * with USER_INT* objects on it.
      *
      * At this point, we're re-evaluating all included files from the cached information plus adding
