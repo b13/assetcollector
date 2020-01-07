@@ -70,8 +70,7 @@ class AssetRenderer implements SingletonInterface
             }
             // Add individual registered JS files. Only relevant on first hit, fully cacheable
             // when the cache is not accessed yet.
-            foreach ($frontendController->pSetup['jsFiles.'] as $key => $jsFile)
-            {
+            foreach ($frontendController->pSetup['jsFiles.'] ?? [] as $key => $jsFile) {
                 if (is_array($jsFile)) {
                     continue;
                 }
@@ -110,8 +109,7 @@ class AssetRenderer implements SingletonInterface
         $cached = $frontendController->config['b13/assetcollector'];
 
         // Add individual registered JS files
-        foreach ($frontendController->pSetup['jsFiles.'] as $key => $jsFile)
-        {
+        foreach ($frontendController->pSetup['jsFiles.'] ?? [] as $key => $jsFile) {
             if (is_array($jsFile)) {
                 continue;
             }
