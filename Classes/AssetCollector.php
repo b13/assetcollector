@@ -130,6 +130,7 @@ class AssetCollector implements SingletonInterface
 
     public function addXmlFile(string $xmlFile): void
     {
+        $xmlFile = preg_replace('/^\//', '', $xmlFile);
         $this->xmlFiles[] = GeneralUtility::getFileAbsFileName($xmlFile);
     }
 
