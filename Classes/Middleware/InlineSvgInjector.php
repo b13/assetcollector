@@ -28,12 +28,7 @@ class InlineSvgInjector implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        if (
-            !($response instanceof NullResponse)
-            && $this->getTypoScriptFrontendController() instanceof TypoScriptFrontendController
-            && $this->getTypoScriptFrontendController()->isOutputting()
-        ) {
-
+        if ($this->isOutputting($response)) {
             $svgAsset = $this->getInlineSvgAsset();
             if ($svgAsset !== '') {
                 $body = $response->getBody();
@@ -53,6 +48,22 @@ class InlineSvgInjector implements MiddlewareInterface
         return $response;
     }
 
+    protected function isOutputting(ResponseInterface $response): bool
+    {
+        if ($response instanceof NullResponse) {
+            return false;
+        }
+        $controller = $this->getTypoScriptFrontendController();
+        if (!($controller instanceof TypoScriptFrontendController)) {
+            return false;
+        }
+        // Once support for TYPO3 v10 is dropped, this condition can be removed.
+        if (method_exists($controller, 'isOutputting')) {
+            return $controller->isOutputting();
+        }
+        return true;
+    }
+
     protected function getInlineSvgAsset(): string
     {
         $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
@@ -65,7 +76,7 @@ class InlineSvgInjector implements MiddlewareInterface
 
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
     {
-        return $GLOBALS['TSFE'];
+        return $GLOBALS['TSFE'] ?? null;
     }
 
 }
