@@ -203,6 +203,7 @@ class AssetCollector implements SingletonInterface
                 $xmlContent->loadXML(file_get_contents($xmlFile));
 
                 $viewBox = $xmlContent->getElementsByTagName('svg')->item(0)->getAttribute('viewBox');
+                $viewBoxAttribute = $viewBox ? ' viewBox = "' . $viewBox . '"' : '';
 
                 $children = $xmlContent->getElementsByTagName('svg')->item(0);
 
@@ -210,7 +211,7 @@ class AssetCollector implements SingletonInterface
                     $svgInline .= trim((string)($child->ownerDocument->saveHtml($child)));
                 }
 
-                $inlineXml .= '<symbol id="icon-' . $iconIdentifier . '" viewBox="' . $viewBox . '">'
+                $inlineXml .= '<symbol id="icon-' . $iconIdentifier . '"' . $viewBoxAttribute . '>'
                               . $svgInline
                               . '</symbol>';
 
