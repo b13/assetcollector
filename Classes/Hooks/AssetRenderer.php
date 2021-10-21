@@ -156,7 +156,7 @@ class AssetRenderer implements SingletonInterface
 
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
     {
-        if ($GLOBALS['TSFE'] instanceof TyposcriptFrontendController) {
+        if (isset($GLOBALS['TSFE']) && $GLOBALS['TSFE'] instanceof TyposcriptFrontendController) {
             return $GLOBALS['TSFE'];
         } else {
             return null;
