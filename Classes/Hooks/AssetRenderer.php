@@ -56,7 +56,7 @@ class AssetRenderer implements SingletonInterface
         $frontendController = $this->getTypoScriptFrontendController();
         if ($frontendController instanceof TypoScriptFrontendController) {
             $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $cached = $frontendController->config['b13/assetcollector'];
+            $cached = $frontendController->config['b13/assetcollector'] ?? [];
             if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
                 $assetCollector->mergeCssFiles($cached['cssFiles']);
             }
@@ -106,7 +106,7 @@ class AssetRenderer implements SingletonInterface
     public function collectInlineAssets($params, TypoScriptFrontendController $frontendController): void
     {
         $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $cached = $frontendController->config['b13/assetcollector'];
+        $cached = $frontendController->config['b13/assetcollector'] ?? [];
 
         // Add individual registered JS files
         foreach ($frontendController->pSetup['jsFiles.'] ?? [] as $key => $jsFile) {
