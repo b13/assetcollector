@@ -218,7 +218,7 @@ class AssetCollector implements SingletonInterface
             }
         }
         if (trim($inlineXml) !== '') {
-            return '<svg aria-hidden="true" style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg" '
+            return '<svg class="tx_assetcollector" aria-hidden="true" style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg" '
                    . 'xmlns:xlink="http://www.w3.org/1999/xlink">'
                    . '<defs>'
                    . $inlineXml
