@@ -34,11 +34,15 @@ class InlineSvgInjector implements MiddlewareInterface
                 $body = $response->getBody();
                 $body->rewind();
                 $contents = $response->getBody()->getContents();
-                $content = str_ireplace(
-                    '</body>',
-                    $svgAsset . '</body>',
-                    $contents
-                );
+                if (strpos($contents, '</body>') !== false) {
+                    $content = str_ireplace(
+                        '</body>',
+                        $svgAsset . '</body>',
+                        $contents
+                    );
+                } else {
+                    $content = $contents . $svgAsset;
+                }
                 $body = new Stream('php://temp', 'rw');
                 $body->write($content);
                 $response = $response->withBody($body);
