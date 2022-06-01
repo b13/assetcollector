@@ -160,7 +160,7 @@ class AssetCollector implements SingletonInterface
         }
         if (trim($inlineCss) !== '') {
             $compressor = GeneralUtility::makeInstance(ResourceCompressor::class);
-            return '<style>' . $compressor->publicCompressCssString($inlineCss) . '</style>';
+            return '<style class="tx_assetcollector">' . $compressor->publicCompressCssString($inlineCss) . '</style>';
         } else {
             return '';
         }
