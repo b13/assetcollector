@@ -71,8 +71,8 @@ class InlineSvgInjector implements MiddlewareInterface
     protected function getInlineSvgAsset(): string
     {
         $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'];
-        if (!empty($cached['xmlFiles']) && is_array($cached['xmlFiles'])) {
+        $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'] ?? [];
+        if (!empty($cached['xmlFiles'] ?? null) && is_array($cached['xmlFiles'])) {
             $assetCollector->mergeXmlFiles($cached['xmlFiles']);
         }
         return $assetCollector->buildInlineXmlTag();
