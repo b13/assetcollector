@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector\ViewHelpers;
 
 /*
@@ -15,24 +16,13 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 class JsViewHelper extends AbstractViewHelper
 {
+    protected AssetCollector $assetCollector;
 
-    /**
-     * @var AssetCollector
-     */
-    protected $assetCollector;
-
-    /**
-     * @param AssetCollector $assetCollector
-     */
-    public function injectAssetCollector(AssetCollector $assetCollector): void
+    public function __construct(AssetCollector $assetCollector)
     {
         $this->assetCollector = $assetCollector;
     }
 
-    /**
-     * @return void
-     * @api
-     */
     public function initializeArguments(): void
     {
         parent::initializeArguments();
@@ -51,16 +41,12 @@ class JsViewHelper extends AbstractViewHelper
         );
     }
 
-    /**
-     * @return void
-     */
     public function render(): void
     {
         if (!empty($this->arguments['file'])) {
             $this->assetCollector->addJavaScriptFile($this->arguments['file'], $this->arguments['additionalAttributes']);
-        } else {
-            // @todo
-            // $this->assetCollector->addInlineJavaScript($this->renderChildren());
         }
+        // @todo
+        // $this->assetCollector->addInlineJavaScript($this->renderChildren());
     }
 }

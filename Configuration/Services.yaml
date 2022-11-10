@@ -1,0 +1,13 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  B13\Assetcollector\:
+    resource: '../Classes/*'
+
+  B13\Assetcollector\Listener\AfterCacheableContentIsGenerated:
+    tags:
+      - name: event.listener
+        identifier: 'b13-assetcollector-after-cacheable-content-is-generated'

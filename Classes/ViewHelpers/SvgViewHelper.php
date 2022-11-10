@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector\ViewHelpers;
 
 /*
@@ -11,7 +12,6 @@ namespace B13\Assetcollector\ViewHelpers;
  */
 
 use B13\Assetcollector\AssetCollector;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
 /**
@@ -24,23 +24,13 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
      */
     protected $tagName = 'svg';
 
-    /**
-     * @var AssetCollector
-     */
-    protected $assetCollector;
+    protected AssetCollector $assetCollector;
 
-    /**
-     * @param AssetCollector $assetCollector
-     */
-    public function injectAssetCollector(AssetCollector $assetCollector): void
+    public function __construct(AssetCollector $assetCollector)
     {
         $this->assetCollector = $assetCollector;
     }
 
-    /**
-     * @return void
-     * @api
-     */
     public function initializeArguments(): void
     {
         parent::initializeArguments();
@@ -59,9 +49,6 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
         );
     }
 
-    /**
-     * @return String rendered tag
-     */
     public function render(): string
     {
         $file = '';
@@ -83,6 +70,5 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
         $this->tag->setContent($content);
 
         return $this->tag->render();
-
     }
 }

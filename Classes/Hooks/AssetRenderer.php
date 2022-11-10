@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector\Hooks;
 
 /*
@@ -35,7 +36,6 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class AssetRenderer implements SingletonInterface
 {
-
     /**
      * Called via PageRenderer->render-postProcess(). Get this:
      *
@@ -134,7 +134,7 @@ class AssetRenderer implements SingletonInterface
             'jsFiles' => $assetCollector->getJavaScriptFiles(),
             'cssFiles' => $assetCollector->getUniqueCssFiles(),
             'inlineCss' => $assetCollector->getUniqueInlineCss(),
-            'xmlFiles' => $assetCollector->getUniqueXmlFiles()
+            'xmlFiles' => $assetCollector->getUniqueXmlFiles(),
         ];
         $frontendController->config['b13/assetcollector'] = $cached;
     }
@@ -158,8 +158,7 @@ class AssetRenderer implements SingletonInterface
     {
         if (($GLOBALS['TSFE'] ?? null) instanceof TypoScriptFrontendController) {
             return $GLOBALS['TSFE'];
-        } else {
-            return null;
         }
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector\Middleware;
 
 /*
@@ -11,14 +12,14 @@ namespace B13\Assetcollector\Middleware;
  */
 
 use B13\Assetcollector\AssetCollector;
-use Psr\Http\Server\MiddlewareInterface;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Http\NullResponse;
 use TYPO3\CMS\Core\Http\Stream;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Middleware to add inline SVGs at the end of the HTML <body> tag.
@@ -47,7 +48,6 @@ class InlineSvgInjector implements MiddlewareInterface
                 $body->write($content);
                 $response = $response->withBody($body);
             }
-
         }
         return $response;
     }
@@ -82,5 +82,4 @@ class InlineSvgInjector implements MiddlewareInterface
     {
         return $GLOBALS['TSFE'] ?? null;
     }
-
 }
