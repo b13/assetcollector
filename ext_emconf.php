@@ -1,4 +1,5 @@
 <?php
+
 $EM_CONF[$_EXTKEY] = [
     'title' => 'Asset collector',
     'description' => 'Add CSS and SVG files and strings as inline style tag/inline svg to the html code.',
@@ -7,10 +8,10 @@ $EM_CONF[$_EXTKEY] = [
     'author' => 'b13 GmbH',
     'author_email' => 'typo3@b13.com',
     'author_company' => 'b13 GmbH, Stuttgart',
-    'version' => '1.6.1',
+    'version' => '2.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '9.5.0-11.9.99',
+            'typo3' => '10.4.0-12.9.99',
         ],
     ],
 ];

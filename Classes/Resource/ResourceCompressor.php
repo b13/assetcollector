@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector\Resource;
 
 /*
@@ -14,12 +15,8 @@ namespace B13\Assetcollector\Resource;
  * This new class is used to allow to separately compress CSS code, which is not possible
  * by directly using TYPO3 Core.
  */
-class ResourceCompressor extends \TYPO3\CMS\Core\Resource\ResourceCompressor {
-
-    /**
-     * @param $content
-     * @return string
-     */
+class ResourceCompressor extends \TYPO3\CMS\Core\Resource\ResourceCompressor
+{
     public function publicCompressCssString(string $content): string
     {
         return $this->compressCssString($content);

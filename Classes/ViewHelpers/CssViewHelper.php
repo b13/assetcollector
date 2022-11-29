@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector\ViewHelpers;
 
 /*
@@ -18,15 +19,9 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
  */
 class CssViewHelper extends AbstractViewHelper
 {
-    /**
-     * @var AssetCollector
-     */
-    protected $assetCollector;
+    protected AssetCollector $assetCollector;
 
-    /**
-     * @param AssetCollector $assetCollector
-     */
-    public function injectAssetCollector(AssetCollector $assetCollector): void
+    public function __construct(AssetCollector $assetCollector)
     {
         $this->assetCollector = $assetCollector;
     }
@@ -44,7 +39,6 @@ class CssViewHelper extends AbstractViewHelper
             'external',
             'boolean',
             'Specifies if the given CSS file should be loaded within link tag.'
-
         );
         $this->registerArgument(
             'media',

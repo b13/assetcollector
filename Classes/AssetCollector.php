@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 namespace B13\Assetcollector;
 
 /*
@@ -10,51 +11,23 @@ namespace B13\Assetcollector;
  * of the License, or any later version.
  */
 
+use B13\Assetcollector\Resource\ResourceCompressor;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use B13\Assetcollector\Resource\ResourceCompressor;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
-use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
-use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Main collector class to be used everywhere
  */
 class AssetCollector implements SingletonInterface
 {
-    /**
-     * @var array
-     */
-    protected $inlineCss = [];
-
-    /**
-     * @var array
-     */
-    protected $cssFiles = [];
-
-    /**
-     * Array of JS files which are appended in script tag in head element.
-     * @var array
-     */
-    protected $jsFiles = [];
-
-    /**
-     * @var array
-     */
-    protected $xmlFiles = [];
-
-    /**
-     * Array of CSS files which are appended in link tag in head element.
-     *
-     * @var array
-     */
-    protected $externalCssFiles = [];
-
-    /**
-     * @var ?array
-     */
-    protected $typoScriptConfiguration = null;
+    protected array $inlineCss = [];
+    protected array $cssFiles = [];
+    protected array $jsFiles = [];
+    protected array $xmlFiles = [];
+    protected array $externalCssFiles = [];
+    protected ?array $typoScriptConfiguration = null;
 
     public function addInlineCss(string $inlineCss): void
     {
@@ -66,10 +39,6 @@ class AssetCollector implements SingletonInterface
         $this->cssFiles[] = GeneralUtility::getFileAbsFileName($cssFile);
     }
 
-    /**
-     * @param string $fileName
-     * @param string $mediaType
-     */
     public function addExternalCssFile(string $fileName, string $mediaType = 'all'): void
     {
         // Only add external css file if not added already.
@@ -94,7 +63,7 @@ class AssetCollector implements SingletonInterface
         }
         $this->jsFiles[] = [
             'fileName' => $fileName,
-            'additionalAttributes' => $additionalAttributes
+            'additionalAttributes' => $additionalAttributes,
         ];
     }
 
@@ -161,9 +130,8 @@ class AssetCollector implements SingletonInterface
         if (trim($inlineCss) !== '') {
             $compressor = GeneralUtility::makeInstance(ResourceCompressor::class);
             return '<style class="tx_assetcollector">' . $compressor->publicCompressCssString($inlineCss) . '</style>';
-        } else {
-            return '';
         }
+        return '';
     }
 
     public function buildJavaScriptIncludes(): string
@@ -196,7 +164,6 @@ class AssetCollector implements SingletonInterface
         $xmlFiles = $this->getUniqueXmlFiles();
         foreach ($xmlFiles as $xmlFile) {
             if (file_exists($xmlFile)) {
-
                 $iconIdentifier = $this->getIconIdentifierFromFileName($xmlFile);
                 $svgInline = '';
                 $xmlContent = new \DOMDocument();
@@ -214,7 +181,6 @@ class AssetCollector implements SingletonInterface
                 $inlineXml .= '<symbol id="icon-' . $iconIdentifier . '"' . $viewBoxAttribute . '>'
                               . $svgInline
                               . '</symbol>';
-
             }
         }
         if (trim($inlineXml) !== '') {
@@ -223,9 +189,8 @@ class AssetCollector implements SingletonInterface
                    . '<defs>'
                    . $inlineXml
                    . '</defs></svg>';
-        } else {
-            return '';
         }
+        return '';
     }
 
     protected function removeUtf8Bom(string $text): string
@@ -254,23 +219,18 @@ class AssetCollector implements SingletonInterface
 
     protected function loadTypoScript(): void
     {
-        $this->typoScriptConfiguration = $this->getExtbaseFrameworkConfiguration() ?? [];
+        $this->typoScriptConfiguration = [];
+        $frontendController = $this->getTypoScriptFrontendController();
+        if ($frontendController !== null) {
+            $this->typoScriptConfiguration = $frontendController->tmpl->setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
+        }
     }
 
-    protected function getExtbaseFrameworkConfiguration(): ?array
+    protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
     {
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        $configurationManager = $objectManager->get(ConfigurationManager::class);
-        try {
-            $extbaseFrameworkConfiguration = $configurationManager->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
-            if (is_array($extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'])) {
-                return $extbaseFrameworkConfiguration['plugin.']['tx_assetcollector.']['icons.'];
-            }
-        } catch (\TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException $e) {
-
+        if (($GLOBALS['TSFE'] ?? null) instanceof TypoScriptFrontendController) {
+            return $GLOBALS['TSFE'];
         }
         return null;
-
     }
-
 }
