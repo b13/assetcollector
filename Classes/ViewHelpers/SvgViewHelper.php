@@ -28,6 +28,7 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
 
     public function __construct(AssetCollector $assetCollector)
     {
+        parent::__construct();
         $this->assetCollector = $assetCollector;
     }
 

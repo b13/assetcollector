@@ -12,6 +12,7 @@ namespace B13\Assetcollector;
  */
 
 use B13\Assetcollector\Resource\ResourceCompressor;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
@@ -36,7 +37,7 @@ class AssetCollector implements SingletonInterface
 
     public function addCssFile(string $cssFile): void
     {
-        $this->cssFiles[] = GeneralUtility::getFileAbsFileName($cssFile);
+        $this->cssFiles[] = $cssFile;
     }
 
     public function addExternalCssFile(string $fileName, string $mediaType = 'all'): void
@@ -123,8 +124,8 @@ class AssetCollector implements SingletonInterface
         $inlineCss = implode("\n", $this->getUniqueInlineCss());
         $cssFiles = $this->getUniqueCssFiles();
         foreach ($cssFiles as $cssFile) {
-            if (file_exists($cssFile)) {
-                $inlineCss .= $this->removeUtf8Bom(file_get_contents($cssFile)) . "\n";
+            if (file_exists(GeneralUtility::getFileAbsFileName($cssFile))) {
+                $inlineCss .= $this->cssContentWithResolvedPaths($cssFile) . "\n";
             }
         }
         if (trim($inlineCss) !== '') {
@@ -132,6 +133,38 @@ class AssetCollector implements SingletonInterface
             return '<style class="tx_assetcollector">' . $compressor->publicCompressCssString($inlineCss) . '</style>';
         }
         return '';
+    }
+
+    protected function cssContentWithResolvedPaths(string $cssFile): string
+    {
+        $absoluteFile =  GeneralUtility::getFileAbsFileName($cssFile);
+        if (file_exists($absoluteFile)) {
+            $content = $this->removeUtf8Bom(file_get_contents($absoluteFile));
+            if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 11) {
+                return $content;
+            }
+            preg_match_all('/url\("([a-zA-Z0-9_.\-\/]+)"\)/', $content, $matches);
+            if (!empty($matches[1])) {
+                $content = $this->replacePaths($matches[1], $cssFile, $content);
+            }
+            preg_match_all('/url\(([a-zA-Z0-9_.\-\/]+)\)/', $content, $matches);
+            if (!empty($matches[1])) {
+                $content = $this->replacePaths($matches[1], $cssFile, $content);
+            }
+        }
+        return $content;
+    }
+
+    protected function replacePaths(array $relativeToCssPaths, string $cssFile, string $content): string
+    {
+        foreach ($relativeToCssPaths as $relativeToCssPath) {
+            $absolute = PathUtility::getAbsolutePathOfRelativeReferencedFileOrPath($cssFile, $relativeToCssPath);
+            if (file_exists(GeneralUtility::getFileAbsFileName($absolute))) {
+                $publicWebPath = PathUtility::getPublicResourceWebPath($absolute);
+                $content = str_replace($relativeToCssPath, $publicWebPath, $content);
+            }
+        }
+        return $content;
     }
 
     public function buildJavaScriptIncludes(): string
