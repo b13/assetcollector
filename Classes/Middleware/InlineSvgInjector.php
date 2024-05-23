@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace B13\Assetcollector\Middleware;
 
 /*
@@ -35,7 +36,7 @@ class InlineSvgInjector implements MiddlewareInterface
                 $body = $response->getBody();
                 $body->rewind();
                 $contents = $response->getBody()->getContents();
-                if (strpos($contents, '</body>') !== false) {
+                if (str_contains($contents, '</body>')) {
                     $content = str_ireplace(
                         '</body>',
                         $svgAsset . '</body>',

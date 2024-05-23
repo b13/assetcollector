@@ -1,4 +1,4 @@
-/build/
 /composer.lock
-/.php_cs.cache
-/public/
+/Build/phpunit/.phpunit.*
+/.php-cs-fixer.cache
+/.Build/
