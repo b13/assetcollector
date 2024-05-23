@@ -11,4 +11,3 @@ services:
     tags:
       - name: event.listener
         identifier: 'b13-assetcollector-after-cacheable-content-is-generated'
-        event: TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent

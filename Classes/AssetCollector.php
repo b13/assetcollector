@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace B13\Assetcollector;
 
 /*
@@ -137,6 +138,7 @@ class AssetCollector implements SingletonInterface
 
     protected function cssContentWithResolvedPaths(string $cssFile): string
     {
+        $content = '';
         $absoluteFile =  GeneralUtility::getFileAbsFileName($cssFile);
         if (file_exists($absoluteFile)) {
             $content = $this->removeUtf8Bom(file_get_contents($absoluteFile));
@@ -183,7 +185,7 @@ class AssetCollector implements SingletonInterface
                     $attributeCode[] = htmlspecialchars($name);
                 }
             }
-            $webPath = (strpos($file['fileName'], 'EXT:') === 0)
+            $webPath = (str_starts_with($file['fileName'], 'EXT:'))
                 ? PathUtility::getAbsoluteWebPath(GeneralUtility::getFileAbsFileName(($file['fileName'])))
                 : $file['fileName'];
             $includes .= '<script src="' . htmlspecialchars($webPath) . '"' . (!empty($attributeCode) ? ' ' . implode(' ', $attributeCode) : '') . '></script>';
