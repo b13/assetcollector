@@ -6,3 +6,5 @@ parameters:
     - %currentWorkingDirectory%/Classes
   excludePaths:
       - %currentWorkingDirectory%/Classes/Listener/AfterCacheableContentIsGenerated.php
+  ignoreErrors:
+    - '#.*unknown class TYPO3\\CMS\\Core\\TypoScript\\FrontendTypoScript.#'

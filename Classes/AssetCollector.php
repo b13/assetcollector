@@ -13,8 +13,10 @@ namespace B13\Assetcollector;
  */
 
 use B13\Assetcollector\Resource\ResourceCompressor;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
@@ -218,6 +220,7 @@ class AssetCollector implements SingletonInterface
                               . '</symbol>';
             }
         }
+
         if (trim($inlineXml) !== '') {
             return '<svg class="tx_assetcollector" aria-hidden="true" style="display: none;" version="1.1" xmlns="http://www.w3.org/2000/svg" '
                    . 'xmlns:xlink="http://www.w3.org/1999/xlink">'
@@ -255,10 +258,26 @@ class AssetCollector implements SingletonInterface
     protected function loadTypoScript(): void
     {
         $this->typoScriptConfiguration = [];
-        $frontendController = $this->getTypoScriptFrontendController();
-        if ($frontendController !== null) {
-            $this->typoScriptConfiguration = $frontendController->tmpl->setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
+        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 12) {
+            $frontendController = $this->getTypoScriptFrontendController();
+            if ($frontendController !== null) {
+                $this->typoScriptConfiguration = $frontendController->tmpl->setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
+            }
+        } else {
+            $request = $this->getServerRequest();
+            if ($request === null) {
+                return;
+            }
+            /** @var FrontendTypoScript $typoScript */
+            $typoScript = $request->getAttribute('frontend.typoscript');
+            $setup = $typoScript->getSetupArray();
+            $this->typoScriptConfiguration = $setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
         }
+    }
+
+    protected function getServerRequest(): ?ServerRequestInterface
+    {
+        return $GLOBALS['TYPO3_REQUEST'] ?? null;
     }
 
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
