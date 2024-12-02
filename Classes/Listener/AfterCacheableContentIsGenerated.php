@@ -12,21 +12,30 @@ namespace B13\Assetcollector\Listener;
  * of the License, or any later version.
  */
 
+use B13\Assetcollector\AssetCollector;
 use B13\Assetcollector\Hooks\AssetRenderer;
 use TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent;
 
 class AfterCacheableContentIsGenerated
 {
     protected AssetRenderer $assetRenderer;
+    protected AssetCollector $assetCollector;
 
-    public function __construct(AssetRenderer $assetRenderer)
+    public function __construct(AssetRenderer $assetRenderer, AssetCollector $assetCollector)
     {
         $this->assetRenderer = $assetRenderer;
+        $this->assetCollector = $assetCollector;
     }
 
     public function __invoke(AfterCacheableContentIsGeneratedEvent $event)
     {
         $frontendController = $event->getController();
         $this->assetRenderer->collectInlineAssets([], $frontendController);
+        $event->getController()->content = str_ireplace(
+            '</body>',
+            $this->assetCollector->buildInlineXmlTag() . '</body>',
+            $event->getController()->content
+        );
+        $event->enableCaching();
     }
 }

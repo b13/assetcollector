@@ -19,6 +19,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Http\NullResponse;
 use TYPO3\CMS\Core\Http\Stream;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
@@ -30,6 +31,9 @@ class InlineSvgInjector implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
+        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() > 11) {
+            return $response;
+        }
         if ($this->isOutputting($response)) {
             $svgAsset = $this->getInlineSvgAsset();
             if ($svgAsset !== '') {
