@@ -32,7 +32,10 @@ class InlineSvgInjector implements MiddlewareInterface
     {
         $response = $handler->handle($request);
         if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() > 11) {
-            return $response;
+            $frontendController = $request->getAttribute('frontend.controller');
+            if ($frontendController->isINTincScript() === false) {
+                return $response;
+            }
         }
         if ($this->isOutputting($response)) {
             $svgAsset = $this->getInlineSvgAsset();
