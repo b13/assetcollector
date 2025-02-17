@@ -31,9 +31,6 @@ class AfterCacheableContentIsGenerated
     {
         $frontendController = $event->getController();
         $this->assetRenderer->collectInlineAssets([], $frontendController);
-        if (!$event->isCachingEnabled()) {
-            return;
-        }
         $event->getController()->content = str_ireplace(
             '</body>',
             $this->assetCollector->buildInlineXmlTag() . '</body>',
