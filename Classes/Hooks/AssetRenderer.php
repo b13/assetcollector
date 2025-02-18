@@ -13,6 +13,7 @@ namespace B13\Assetcollector\Hooks;
  */
 
 use B13\Assetcollector\AssetCollector;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -57,7 +58,7 @@ class AssetRenderer implements SingletonInterface
         $frontendController = $this->getTypoScriptFrontendController();
         if ($frontendController instanceof TypoScriptFrontendController) {
             $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $cached = $frontendController->config['b13/assetcollector'] ?? [];
+            $cached = $this->getFromCached($frontendController);
             if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
                 $assetCollector->mergeCssFiles($cached['cssFiles']);
             }
@@ -107,7 +108,7 @@ class AssetRenderer implements SingletonInterface
     public function collectInlineAssets($params, TypoScriptFrontendController $frontendController): void
     {
         $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $cached = $frontendController->config['b13/assetcollector'] ?? [];
+        $cached = $this->getFromCached($frontendController);
 
         // Add individual registered JS files
         foreach ($frontendController->pSetup['jsFiles.'] ?? [] as $key => $jsFile) {
@@ -137,7 +138,24 @@ class AssetRenderer implements SingletonInterface
             'inlineCss' => $assetCollector->getUniqueInlineCss(),
             'xmlFiles' => $assetCollector->getUniqueXmlFiles(),
         ];
-        $frontendController->config['b13/assetcollector'] = $cached;
+        $this->addToCached($frontendController, $cached);
+    }
+
+    protected function getFromCached(TypoScriptFrontendController $frontendController): array
+    {
+        if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 13) {
+            return $frontendController->config['b13/assetcollector'] ?? [];
+        }
+        return $frontendController->config['INTincScript_ext']['b13/assetcollector'] ?? [];
+    }
+
+    protected function addToCached(TypoScriptFrontendController $frontendController, array $data): void
+    {
+        if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 13) {
+            $frontendController->config['b13/assetcollector'] = $data;
+        } else {
+            $frontendController->config['INTincScript_ext']['b13/assetcollector'] = $data;
+        }
     }
 
     /**
