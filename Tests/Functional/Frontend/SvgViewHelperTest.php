@@ -34,4 +34,20 @@ class SvgViewHelperTest extends FunctionalTestCase
         $expected = '<rect y="0.3" class="st0" width="256" height="256"></rect>';
         self::assertStringContainsString($expected, $body);
     }
+
+    /**
+     * @test
+     */
+    public function scriptTagForInlineCssIsRenderedWithNoBodyTag(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelperWithNoBodyTag.csv');
+        $response = $this->executeFrontendSubRequest(new InternalRequest('http://localhost/'));
+        $expected = '<svg><use xlink:href="#icon-Extension"></use></svg>';
+        $body = (string)$response->getBody();
+        self::assertStringContainsString($expected, $body);
+        $expected = '<svg class="tx_assetcollector"';
+        self::assertStringContainsString($expected, $body);
+        $expected = '<rect y="0.3" class="st0" width="256" height="256"></rect>';
+        self::assertStringContainsString($expected, $body);
+    }
 }
