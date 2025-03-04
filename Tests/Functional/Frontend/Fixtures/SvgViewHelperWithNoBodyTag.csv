@@ -1,0 +1,12 @@
+"pages"
+,"uid","pid","title","slug"
+,1,0,"root","/"
+"sys_template"
+,"uid","pid","root","config"
+,1,1,1,"page = PAGE
+page.config.disableAllHeaderCode = 1
+page.10 = FLUIDTEMPLATE
+page.10.templateRootPaths.10 = EXT:assetcollector/Tests/Functional/Frontend/Fixtures/Templates
+page.10.templateName = SvgViewHelper.html
+plugin.tx_assetcollector.icons.download = EXT:assetcollector/Resources/Public/Icons/Extension.svg
+"
