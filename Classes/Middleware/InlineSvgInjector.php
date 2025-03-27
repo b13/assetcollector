@@ -28,15 +28,16 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class InlineSvgInjector implements MiddlewareInterface
 {
+    protected AssetCollector $assetCollector;
+
+    public function __construct(AssetCollector $assetCollector)
+    {
+        $this->assetCollector = $assetCollector;
+    }
+
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() > 11) {
-            $frontendController = $request->getAttribute('frontend.controller');
-            if ($frontendController->isINTincScript() === false) {
-                return $response;
-            }
-        }
         if ($this->isOutputting($response)) {
             $svgAsset = $this->getInlineSvgAsset();
             if ($svgAsset !== '') {
@@ -78,12 +79,15 @@ class InlineSvgInjector implements MiddlewareInterface
 
     protected function getInlineSvgAsset(): string
     {
-        $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'] ?? [];
-        if (!empty($cached['xmlFiles'] ?? null) && is_array($cached['xmlFiles'])) {
-            $assetCollector->mergeXmlFiles($cached['xmlFiles']);
+        if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 13) {
+            $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'] ?? [];
+        } else {
+            $cached = $this->getTypoScriptFrontendController()->config['INTincScript_ext']['b13/assetcollector'] ?? [];
         }
-        return $assetCollector->buildInlineXmlTag();
+        if (!empty($cached['xmlFiles'] ?? null) && is_array($cached['xmlFiles'])) {
+            $this->assetCollector->mergeXmlFiles($cached['xmlFiles']);
+        }
+        return $this->assetCollector->buildInlineXmlTag();
     }
 
     protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController

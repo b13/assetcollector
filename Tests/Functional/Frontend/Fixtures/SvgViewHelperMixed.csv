@@ -1,0 +1,16 @@
+"pages"
+,"uid","pid","title","slug"
+,1,0,"root","/"
+"sys_template"
+,"uid","pid","root","config"
+,1,1,1,"page = PAGE
+page.10 = COA_INT
+page.10.10 = FLUIDTEMPLATE
+page.10.10.templateRootPaths.10 = EXT:assetcollector/Tests/Functional/Frontend/Fixtures/Templates
+page.10.10.templateName = SvgViewHelper.html
+plugin.tx_assetcollector.icons.download = EXT:assetcollector/Resources/Public/Icons/Extension.svg
+page.20 = COA
+page.20.10 = FLUIDTEMPLATE
+page.20.10.templateRootPaths.10 = EXT:assetcollector/Tests/Functional/Frontend/Fixtures/Templates
+page.20.10.templateName = SvgViewHelper.html
+"
