@@ -66,4 +66,22 @@ class SvgViewHelperCachedTest extends FunctionalTestCase
         $bodyCached = (string)$response->getBody();
         self::assertSame($bodyUncached, $bodyCached);
     }
+
+    /**
+     * @test
+     */
+    public function scriptTagForInlineCssIsRenderedForCachedAndIntContentMixed(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelperMixed.csv');
+        $response = $this->executeFrontendSubRequest(new InternalRequest('http://localhost/'));
+        $expected = '<svg class="tx_assetcollector"';
+        $notExected = '</svg><svg class="tx_assetcollector"';
+        $bodyUncached = (string)$response->getBody();
+        self::assertStringContainsString($expected, $bodyUncached);
+        self::assertStringNotContainsString($notExected, $bodyUncached);
+        // cached
+        $response = $this->executeFrontendSubRequest(new InternalRequest('http://localhost/'));
+        $bodyCached = (string)$response->getBody();
+        self::assertSame($bodyUncached, $bodyCached);
+    }
 }

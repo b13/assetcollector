@@ -31,16 +31,5 @@ class AfterCacheableContentIsGenerated
     {
         $frontendController = $event->getController();
         $this->assetRenderer->collectInlineAssets([], $frontendController);
-        $content = $event->getController()->content;
-        if (str_contains($content, '</body>')) {
-            $content = str_ireplace(
-                '</body>',
-                $this->assetCollector->buildInlineXmlTag() . '</body>',
-                $content
-            );
-        } else {
-            $content = $content . $this->assetCollector->buildInlineXmlTag();
-        }
-        $event->getController()->content = $content;
     }
 }
