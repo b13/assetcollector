@@ -57,7 +57,7 @@ class AssetCollector implements SingletonInterface
         ];
     }
 
-    public function addJavaScriptFile(string $fileName, array $additionalAttributes = null): void
+    public function addJavaScriptFile(string $fileName, ?array $additionalAttributes = null): void
     {
         // Only add JS file if not added already.
         foreach ($this->jsFiles as $jsFile) {
