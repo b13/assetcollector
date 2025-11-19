@@ -104,7 +104,7 @@ class AssetCollector implements SingletonInterface
     public function addXmlFile(string $xmlFile): void
     {
         $xmlFile = preg_replace('/^\//', '', $xmlFile);
-        $this->xmlFiles[] = GeneralUtility::getFileAbsFileName($xmlFile);
+        $this->xmlFiles[] = $xmlFile;
     }
 
     public function getExternalCssFiles(): array
@@ -200,11 +200,12 @@ class AssetCollector implements SingletonInterface
         $inlineXml = '';
         $xmlFiles = $this->getUniqueXmlFiles();
         foreach ($xmlFiles as $xmlFile) {
-            if (file_exists($xmlFile)) {
+            $absoluteFile = GeneralUtility::getFileAbsFileName($xmlFile);
+            if (file_exists($absoluteFile)) {
                 $iconIdentifier = $this->getIconIdentifierFromFileName($xmlFile);
                 $svgInline = '';
                 $xmlContent = new \DOMDocument();
-                $xmlContent->loadXML(file_get_contents($xmlFile));
+                $xmlContent->loadXML(file_get_contents($absoluteFile));
 
                 $viewBox = $xmlContent->getElementsByTagName('svg')->item(0)->getAttribute('viewBox');
                 $viewBoxAttribute = $viewBox ? ' viewBox = "' . $viewBox . '"' : '';
