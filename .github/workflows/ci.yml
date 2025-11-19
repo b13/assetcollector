@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        TYPO3: ['11' , '12', '13']
+        TYPO3: ['12', '13']
 
     steps:
       - name: Checkout
