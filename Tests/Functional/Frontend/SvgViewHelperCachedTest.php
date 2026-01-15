@@ -10,6 +10,7 @@ namespace B13\Assetcollector\Tests\Functional\Functional;
  * of the License, or any later version.
  */
 
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
@@ -31,9 +32,7 @@ class SvgViewHelperCachedTest extends FunctionalTestCase
         ],
     ];
 
-    /**
-     * @test
-     */
+    #[Test]
     public function scriptTagForInlineCssIsRendered(): void
     {
         $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelper.csv');
@@ -49,9 +48,7 @@ class SvgViewHelperCachedTest extends FunctionalTestCase
         self::assertSame($bodyUncached, $bodyCached);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function scriptTagForInlineCssIsRenderedForInt(): void
     {
         $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelperInt.csv');
@@ -67,9 +64,7 @@ class SvgViewHelperCachedTest extends FunctionalTestCase
         self::assertSame($bodyUncached, $bodyCached);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function scriptTagForInlineCssIsRenderedForCachedAndIntContentMixed(): void
     {
         $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelperMixed.csv');

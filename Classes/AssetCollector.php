@@ -12,19 +12,15 @@ namespace B13\Assetcollector;
  * of the License, or any later version.
  */
 
-use B13\Assetcollector\Resource\ResourceCompressor;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Information\Typo3Version;
-use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Main collector class to be used everywhere
  */
-class AssetCollector implements SingletonInterface
+class AssetCollector
 {
     protected array $inlineCss = [];
     protected array $cssFiles = [];
@@ -132,8 +128,7 @@ class AssetCollector implements SingletonInterface
             }
         }
         if (trim($inlineCss) !== '') {
-            $compressor = GeneralUtility::makeInstance(ResourceCompressor::class);
-            return '<style class="tx_assetcollector">' . $compressor->publicCompressCssString($inlineCss) . '</style>';
+            return '<style class="tx_assetcollector">' . trim($inlineCss) . '</style>';
         }
         return '';
     }
@@ -144,9 +139,6 @@ class AssetCollector implements SingletonInterface
         $absoluteFile =  GeneralUtility::getFileAbsFileName($cssFile);
         if (file_exists($absoluteFile)) {
             $content = $this->removeUtf8Bom(file_get_contents($absoluteFile));
-            if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 11) {
-                return $content;
-            }
             preg_match_all('/url\("([a-zA-Z0-9_.\-\/]+)"\)/', $content, $matches);
             if (!empty($matches[1])) {
                 $content = $this->replacePaths($matches[1], $cssFile, $content);
@@ -259,33 +251,18 @@ class AssetCollector implements SingletonInterface
     protected function loadTypoScript(): void
     {
         $this->typoScriptConfiguration = [];
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 12) {
-            $frontendController = $this->getTypoScriptFrontendController();
-            if ($frontendController !== null) {
-                $this->typoScriptConfiguration = $frontendController->tmpl->setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
-            }
-        } else {
-            $request = $this->getServerRequest();
-            if ($request === null) {
-                return;
-            }
-            /** @var FrontendTypoScript $typoScript */
-            $typoScript = $request->getAttribute('frontend.typoscript');
-            $setup = $typoScript->getSetupArray();
-            $this->typoScriptConfiguration = $setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
+        $request = $this->getServerRequest();
+        if ($request === null) {
+            return;
         }
+        /** @var FrontendTypoScript $typoScript */
+        $typoScript = $request->getAttribute('frontend.typoscript');
+        $setup = $typoScript->getSetupArray();
+        $this->typoScriptConfiguration = $setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
     }
 
     protected function getServerRequest(): ?ServerRequestInterface
     {
         return $GLOBALS['TYPO3_REQUEST'] ?? null;
-    }
-
-    protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
-    {
-        if (($GLOBALS['TSFE'] ?? null) instanceof TypoScriptFrontendController) {
-            return $GLOBALS['TSFE'];
-        }
-        return null;
     }
 }

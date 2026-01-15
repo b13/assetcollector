@@ -10,6 +10,7 @@ namespace B13\Assetcollector\Tests\Functional\Functional;
  * of the License, or any later version.
  */
 
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
@@ -25,21 +26,19 @@ class InlineCssWithUncachedElementTest extends FunctionalTestCase
                 'cacheConfigurations' => [
                     'pages' => [
                         'backend' => \TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend::class,
-                        'options' => ['compression' => 0],
+                        'options' => ['compression' => false],
                     ],
                 ],
             ],
         ],
     ];
 
-    /**
-     * @test
-     */
+    #[Test]
     public function scriptTagForInlineCssIsRenderedUncached(): void
     {
         $this->importCSVDataSet(__DIR__ . '/Fixtures/InlineCssWithUncachedElement.csv');
         $response = $this->executeFrontendSubRequest(new InternalRequest('http://localhost/'));
-        $expected = '<style class="tx_assetcollector">h1{color:red;}';
+        $expected = '<style class="tx_assetcollector">h1 { color: red; }';
         $body = (string)$response->getBody();
         self::assertStringContainsString($expected, $body);
         // cached

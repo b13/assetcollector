@@ -13,13 +13,12 @@ namespace B13\Assetcollector\Tests\Unit;
  */
 
 use B13\Assetcollector\AssetCollector;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class AssetCollectorTest extends UnitTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function buildInlineCssTagTest(): void
     {
         $assetCollector = $this->getMockBuilder(AssetCollector::class)
