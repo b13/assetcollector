@@ -17,81 +17,59 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use TYPO3\CMS\Core\Cache\CacheDataCollector;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Http\NullResponse;
 use TYPO3\CMS\Core\Http\Stream;
-use TYPO3\CMS\Core\Information\Typo3Version;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
  * Middleware to add inline SVGs at the end of the HTML <body> tag.
  */
 class InlineSvgInjector implements MiddlewareInterface
 {
-    protected AssetCollector $assetCollector;
-
-    public function __construct(AssetCollector $assetCollector)
+    public function __construct(private readonly FrontendInterface $cache, private readonly AssetCollector $assetCollector)
     {
-        $this->assetCollector = $assetCollector;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        if ($this->isOutputting($response)) {
-            $svgAsset = $this->getInlineSvgAsset();
-            if ($svgAsset !== '') {
-                $body = $response->getBody();
-                $body->rewind();
-                $contents = $response->getBody()->getContents();
-                if (str_contains($contents, '</body>')) {
-                    $content = str_ireplace(
-                        '</body>',
-                        $svgAsset . '</body>',
-                        $contents
-                    );
-                } else {
-                    $content = $contents . $svgAsset;
-                }
-                $body = new Stream('php://temp', 'rw');
-                $body->write($content);
-                $response = $response->withBody($body);
+        if ($response instanceof NullResponse) {
+            return $response;
+        }
+        $svgAsset = $this->getInlineSvgAsset($request);
+        if ($svgAsset !== '') {
+            $body = $response->getBody();
+            $body->rewind();
+            $contents = $response->getBody()->getContents();
+            if (str_contains($contents, '</body>')) {
+                $content = str_ireplace(
+                    '</body>',
+                    $svgAsset . '</body>',
+                    $contents
+                );
+            } else {
+                $content = $contents . $svgAsset;
             }
+            $body = new Stream('php://temp', 'rw');
+            $body->write($content);
+            $response = $response->withBody($body);
         }
         return $response;
     }
 
-    protected function isOutputting(ResponseInterface $response): bool
+    protected function getInlineSvgAsset(ServerRequestInterface $request): string
     {
-        if ($response instanceof NullResponse) {
-            return false;
-        }
-        $controller = $this->getTypoScriptFrontendController();
-        if (!($controller instanceof TypoScriptFrontendController)) {
-            return false;
-        }
-        // Once support for TYPO3 v10 is dropped, this condition can be removed.
-        if (method_exists($controller, 'isOutputting')) {
-            return $controller->isOutputting();
-        }
-        return true;
-    }
-
-    protected function getInlineSvgAsset(): string
-    {
-        if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 13) {
-            $cached = $this->getTypoScriptFrontendController()->config['b13/assetcollector'] ?? [];
-        } else {
-            $cached = $this->getTypoScriptFrontendController()->config['INTincScript_ext']['b13/assetcollector'] ?? [];
+        /** @var CacheDataCollector $cacheDataCollector */
+        $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
+        $identifier = $cacheDataCollector->getPageCacheIdentifier();
+        $cached = [];
+        if ($this->cache->has($identifier)) {
+            $cached = $this->cache->get($identifier);
         }
         if (!empty($cached['xmlFiles'] ?? null) && is_array($cached['xmlFiles'])) {
             $this->assetCollector->mergeXmlFiles($cached['xmlFiles']);
         }
         return $this->assetCollector->buildInlineXmlTag();
-    }
-
-    protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
-    {
-        return $GLOBALS['TSFE'] ?? null;
     }
 }

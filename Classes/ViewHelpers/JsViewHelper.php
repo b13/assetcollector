@@ -17,11 +17,8 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 class JsViewHelper extends AbstractViewHelper
 {
-    protected AssetCollector $assetCollector;
-
-    public function __construct(AssetCollector $assetCollector)
+    public function __construct(private readonly AssetCollector $assetCollector)
     {
-        $this->assetCollector = $assetCollector;
     }
 
     public function initializeArguments(): void

@@ -10,6 +10,7 @@ namespace B13\Assetcollector\Tests\Functional\Functional;
  * of the License, or any later version.
  */
 
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
@@ -19,9 +20,7 @@ class SvgViewHelperTest extends FunctionalTestCase
     protected array $coreExtensionsToLoad = ['core', 'frontend'];
     protected array $pathsToLinkInTestInstance = ['typo3conf/ext/assetcollector/Build/sites' => 'typo3conf/sites'];
 
-    /**
-     * @test
-     */
+    #[Test]
     public function scriptTagForInlineCssIsRendered(): void
     {
         $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelper.csv');
@@ -35,9 +34,7 @@ class SvgViewHelperTest extends FunctionalTestCase
         self::assertStringContainsString($expected, $body);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function scriptTagForInlineCssIsRenderedWithNoBodyTag(): void
     {
         $this->importCSVDataSet(__DIR__ . '/Fixtures/SvgViewHelperWithNoBodyTag.csv');

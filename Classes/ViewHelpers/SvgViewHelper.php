@@ -25,18 +25,14 @@ class SvgViewHelper extends AbstractTagBasedViewHelper
      */
     protected $tagName = 'svg';
 
-    protected AssetCollector $assetCollector;
-
-    public function __construct(AssetCollector $assetCollector)
+    public function __construct(private readonly AssetCollector $assetCollector)
     {
         parent::__construct();
-        $this->assetCollector = $assetCollector;
     }
 
     public function initializeArguments(): void
     {
         parent::initializeArguments();
-        $this->registerUniversalTagAttributes();
         $this->registerArgument(
             'file',
             'string',

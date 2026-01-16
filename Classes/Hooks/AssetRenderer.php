@@ -13,11 +13,14 @@ namespace B13\Assetcollector\Hooks;
  */
 
 use B13\Assetcollector\AssetCollector;
-use TYPO3\CMS\Core\Information\Typo3Version;
+use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Cache\CacheDataCollector;
+use TYPO3\CMS\Core\Cache\CacheTag;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Hooks into PageRenderer to add CSS / JS / SVG files
@@ -36,8 +39,13 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  * With COA_INT 2nd hit
  * 1. insertAssets() - taking data from the cache PLUS all the the assets added via USER_INTs
  */
-class AssetRenderer implements SingletonInterface
+#[Autoconfigure(public: true)]
+class AssetRenderer
 {
+    public function __construct(private readonly FrontendInterface $cache, private readonly AssetCollector $assetCollector)
+    {
+    }
+
     /**
      * Called via PageRenderer->render-postProcess(). Get this:
      *
@@ -55,35 +63,33 @@ class AssetRenderer implements SingletonInterface
      */
     public function insertAssets($params, PageRenderer $pageRenderer): void
     {
-        $frontendController = $this->getTypoScriptFrontendController();
-        if ($frontendController instanceof TypoScriptFrontendController) {
-            $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-            $cached = $this->getFromCached($frontendController);
+        $request = $this->getServerRequest();
+        if (ApplicationType::fromRequest($this->getServerRequest())->isFrontend() === false) {
+            return;
+        }
+        if ($request !== null) {
+            $cached = $this->getFromCached($request);
             if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
-                $assetCollector->mergeCssFiles($cached['cssFiles']);
+                $this->assetCollector->mergeCssFiles($cached['cssFiles']);
             }
             if (!empty($cached['inlineCss']) && is_array($cached['inlineCss'])) {
-                $assetCollector->mergeInlineCss($cached['inlineCss']);
+                $this->assetCollector->mergeInlineCss($cached['inlineCss']);
             }
             if (!empty($cached['jsFiles']) && is_array($cached['jsFiles'])) {
                 foreach ($cached['jsFiles'] as $data) {
-                    $assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
+                    $this->assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
                 }
-            }
-            // Add individual registered JS files. Only relevant on first hit, fully cacheable
-            // when the cache is not accessed yet.
-            foreach ($frontendController->pSetup['jsFiles.'] ?? [] as $key => $jsFile) {
-                if (is_array($jsFile)) {
-                    continue;
-                }
-                $additionalAttributes = $frontendController->pSetup['jsFiles.'][$key . '.'] ?? [];
-                $assetCollector->addJavaScriptFile($jsFile, $additionalAttributes);
             }
             $params['headerData'] = array_merge(
                 $params['headerData'],
-                [$assetCollector->buildInlineCssTag(), $assetCollector->buildJavaScriptIncludes()]
+                [$this->assetCollector->buildInlineCssTag(), $this->assetCollector->buildJavaScriptIncludes()]
             );
         }
+    }
+
+    protected function getServerRequest(): ?ServerRequestInterface
+    {
+        return $GLOBALS['TYPO3_REQUEST'] ?? null;
     }
 
     /**
@@ -101,61 +107,52 @@ class AssetRenderer implements SingletonInterface
      * If the page is fully cacheable the hook is not called on a "cached hit".
      *
      * Then, the full information is again stored in the "b13/assetcollector" bucket.
-     *
-     * @param array $params
-     * @param TypoScriptFrontendController $frontendController
      */
-    public function collectInlineAssets($params, TypoScriptFrontendController $frontendController): void
+    public function collectInlineAssets(ServerRequestInterface $serverRequest): void
     {
-        $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        $cached = $this->getFromCached($frontendController);
-
-        // Add individual registered JS files
-        foreach ($frontendController->pSetup['jsFiles.'] ?? [] as $key => $jsFile) {
-            if (is_array($jsFile)) {
-                continue;
-            }
-            $additionalAttributes = $frontendController->pSetup['jsFiles.'][$key . '.'] ?? [];
-            $assetCollector->addJavaScriptFile($jsFile, $additionalAttributes);
-        }
+        $cached = $this->getFromCached($serverRequest);
         if (!empty($cached['jsFiles']) && is_array($cached['jsFiles'])) {
             foreach ($cached['jsFiles'] as $data) {
-                $assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
+                $this->assetCollector->addJavaScriptFile($data['fileName'], $data['additionalAttributes']);
             }
         }
         if (!empty($cached['cssFiles']) && is_array($cached['cssFiles'])) {
-            $assetCollector->mergeCssFiles($cached['cssFiles']);
+            $this->assetCollector->mergeCssFiles($cached['cssFiles']);
         }
         if (!empty($cached['inlineCss']) && is_array($cached['inlineCss'])) {
-            $assetCollector->mergeInlineCss($cached['inlineCss']);
+            $this->assetCollector->mergeInlineCss($cached['inlineCss']);
         }
         if (!empty($cached['xmlFiles']) && is_array($cached['xmlFiles'])) {
-            $assetCollector->mergeXmlFiles($cached['xmlFiles']);
+            $this->assetCollector->mergeXmlFiles($cached['xmlFiles']);
         }
         $cached = [
-            'jsFiles' => $assetCollector->getJavaScriptFiles(),
-            'cssFiles' => $assetCollector->getUniqueCssFiles(),
-            'inlineCss' => $assetCollector->getUniqueInlineCss(),
-            'xmlFiles' => $assetCollector->getUniqueXmlFiles(),
+            'jsFiles' => $this->assetCollector->getJavaScriptFiles(),
+            'cssFiles' => $this->assetCollector->getUniqueCssFiles(),
+            'inlineCss' => $this->assetCollector->getUniqueInlineCss(),
+            'xmlFiles' => $this->assetCollector->getUniqueXmlFiles(),
         ];
-        $this->addToCached($frontendController, $cached);
+        $this->addToCached($serverRequest, $cached);
     }
 
-    protected function getFromCached(TypoScriptFrontendController $frontendController): array
+    protected function getFromCached(ServerRequestInterface $request): array
     {
-        if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 13) {
-            return $frontendController->config['b13/assetcollector'] ?? [];
+        /** @var CacheDataCollector $cacheDataCollector */
+        $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
+        $identifier = $cacheDataCollector->getPageCacheIdentifier();
+        if ($this->cache->has($identifier)) {
+            return $this->cache->get($identifier);
         }
-        return $frontendController->config['INTincScript_ext']['b13/assetcollector'] ?? [];
+        return [];
     }
 
-    protected function addToCached(TypoScriptFrontendController $frontendController, array $data): void
+    protected function addToCached(ServerRequestInterface $request, array $data): void
     {
-        if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() < 13) {
-            $frontendController->config['b13/assetcollector'] = $data;
-        } else {
-            $frontendController->config['INTincScript_ext']['b13/assetcollector'] = $data;
-        }
+        /** @var CacheDataCollector $cacheDataCollector */
+        $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
+        $identifier = $cacheDataCollector->getPageCacheIdentifier();
+        $cacheTags = array_map(fn (CacheTag $cacheTag) => $cacheTag->name, $cacheDataCollector->getCacheTags());
+        $cacheTimeout = $cacheDataCollector->resolveLifetime();
+        $this->cache->set($identifier, $data, $cacheTags, $cacheTimeout);
     }
 
     /**
@@ -167,17 +164,8 @@ class AssetRenderer implements SingletonInterface
      */
     public function collectCssFiles($params, PageRenderer $pageRenderer): void
     {
-        $assetCollector = GeneralUtility::makeInstance(AssetCollector::class);
-        foreach ($assetCollector->getExternalCssFiles() as $cssFile) {
+        foreach ($this->assetCollector->getExternalCssFiles() as $cssFile) {
             $pageRenderer->addCssFile($cssFile['fileName'], 'stylesheet', $cssFile['mediaType'], '', false, false, '', true);
         }
-    }
-
-    protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
-    {
-        if (($GLOBALS['TSFE'] ?? null) instanceof TypoScriptFrontendController) {
-            return $GLOBALS['TSFE'];
-        }
-        return null;
     }
 }

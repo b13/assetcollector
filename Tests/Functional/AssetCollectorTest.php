@@ -11,6 +11,7 @@ namespace B13\Assetcollector\Tests\Functional;
  */
 
 use B13\Assetcollector\AssetCollector;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 class AssetCollectorTest extends FunctionalTestCase
@@ -18,9 +19,7 @@ class AssetCollectorTest extends FunctionalTestCase
     protected array $testExtensionsToLoad = ['typo3conf/ext/assetcollector'];
     protected array $coreExtensionsToLoad = ['core'];
 
-    /**
-     * @test
-     */
+    #[Test]
     public function buildXmlTagBuildsXmlTagForExistingFile(): void
     {
         $assetCollector = new AssetCollector();
@@ -29,9 +28,7 @@ class AssetCollectorTest extends FunctionalTestCase
         self::assertStringContainsString('<title>EXT:assetcollector</title', $content);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function buildXmlTagIsEmptyForNoneExistingFile(): void
     {
         $assetCollector = new AssetCollector();
