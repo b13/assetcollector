@@ -30,7 +30,7 @@ class SvgViewHelperTest extends FunctionalTestCase
         self::assertStringContainsString($expected, $body);
         $expected = '<svg class="tx_assetcollector"';
         self::assertStringContainsString($expected, $body);
-        $expected = '<rect y="0.3" class="st0" width="256" height="256"></rect>';
+        $expected = '<rect id="BG-Color" width="64" height="64" rx="4" ry="4" style="fill:#ba9af6"></rect>';
         self::assertStringContainsString($expected, $body);
     }
 
@@ -44,7 +44,7 @@ class SvgViewHelperTest extends FunctionalTestCase
         self::assertStringContainsString($expected, $body);
         $expected = '<svg class="tx_assetcollector"';
         self::assertStringContainsString($expected, $body);
-        $expected = '<rect y="0.3" class="st0" width="256" height="256"></rect>';
+        $expected = '<rect id="BG-Color" width="64" height="64" rx="4" ry="4" style="fill:#ba9af6"></rect>';
         self::assertStringContainsString($expected, $body);
     }
 }
