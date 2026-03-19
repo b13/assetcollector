@@ -20,7 +20,6 @@ use TYPO3\CMS\Core\Cache\CacheTag;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Hooks into PageRenderer to add CSS / JS / SVG files
