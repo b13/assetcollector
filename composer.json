@@ -1,7 +1,7 @@
 {
 	"name": "b13/assetcollector",
 	"type": "typo3-cms-extension",
-	"description": "Add CSS and SVG files and strings as inline style tag/inline svg to the html code.",
+	"description": "Asset collector - Add CSS and SVG files and strings as inline style tag/inline svg to the html code.",
 	"license": "GPL-2.0-or-later",
 	"config": {
 		"vendor-dir": ".Build/vendor",
@@ -12,14 +12,18 @@
 		}
 	},
 	"require": {
-		"typo3/cms-core": "^14.0",
-		"typo3/cms-frontend": "^14.0"
+		"typo3/cms-core": "^14.3",
+		"typo3/cms-frontend": "^14.3"
 	},
 	"extra": {
 		"typo3/cms": {
 			"extension-key": "assetcollector",
 			"web-dir": ".Build/Web",
-			"app-dir": ".Build"
+			"app-dir": ".Build",
+			"version": "4.0.0",
+			"Package": {
+				"providesPackages": {}
+			}
 		}
 	},
 	"autoload": {
@@ -36,6 +40,6 @@
 		"phpstan/phpstan": "^1.10",
 		"typo3/coding-standards": "^0.5.5",
 		"typo3/tailor": "^1.1",
-		"typo3/testing-framework": "^9.1"
+		"typo3/testing-framework": "^9.5"
 	}
 }

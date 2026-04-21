@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       - name: Set up PHP Version
         uses: shivammathur/setup-php@v2
@@ -27,17 +27,15 @@ jobs:
         run: composer validate
 
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.composer/cache
           key: dependencies-composer-${{ hashFiles('composer.json') }}
 
-      - name: Install composer dependencies TYPO3 14
-        if: matrix.TYPO3 == '14'
+      - name: Install composer dependencies
         run: |
           composer install --no-progress --no-interaction
       - name: Phpstan
-        if: matrix.TYPO3 == '14'
         run: .Build/bin/phpstan analyze -c Build/phpstan.neon
       - name: Phpcsfix
         run: .Build/bin/php-cs-fixer fix --config=Build/php-cs-fixer.php --dry-run --stop-on-violation --using-cache=no
