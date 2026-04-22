@@ -25,7 +25,7 @@ class AssetCollectorTest extends FunctionalTestCase
         $assetCollector = new AssetCollector();
         $assetCollector->addXmlFile('EXT:assetcollector/Resources/Public/Icons/Extension.svg');
         $content = $assetCollector->buildInlineXmlTag();
-        self::assertStringContainsString('<title>EXT:assetcollector</title', $content);
+        self::assertStringContainsString('<rect id="BG-Color" width="64" height="64" rx="4" ry="4" style="fill:#ba9af6"></rect>', $content);
     }
 
     #[Test]
