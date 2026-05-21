@@ -11,9 +11,4 @@ services:
     class: TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
     factory: ['@TYPO3\CMS\Core\Cache\CacheManager', 'getCache']
     arguments: ['tx_assetcollector']
-  B13\Assetcollector\Middleware\InlineSvgInjector:
-    arguments:
-      $cache: '@cache.tx_assetcollector'
-  B13\Assetcollector\Hooks\AssetRenderer:
-    arguments:
-      $cache: '@cache.tx_assetcollector'
+

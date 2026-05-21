@@ -17,6 +17,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use TYPO3\CMS\Core\Cache\CacheDataCollector;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Http\NullResponse;
@@ -27,8 +28,11 @@ use TYPO3\CMS\Core\Http\Stream;
  */
 class InlineSvgInjector implements MiddlewareInterface
 {
-    public function __construct(private readonly FrontendInterface $cache, private readonly AssetCollector $assetCollector)
-    {
+    public function __construct(
+        #[Autowire(service: 'cache.tx_assetcollector')]
+        private readonly FrontendInterface $cache,
+        private readonly AssetCollector $assetCollector
+    ) {
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
