@@ -13,8 +13,11 @@ namespace B13\Assetcollector\Hooks;
  */
 
 use B13\Assetcollector\AssetCollector;
+use B13\Assetcollector\Event\BeforeDataAreAddedToCacheEvent;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use TYPO3\CMS\Core\Cache\CacheDataCollector;
 use TYPO3\CMS\Core\Cache\CacheTag;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
@@ -41,8 +44,12 @@ use TYPO3\CMS\Core\Page\PageRenderer;
 #[Autoconfigure(public: true)]
 class AssetRenderer
 {
-    public function __construct(private readonly FrontendInterface $cache, private readonly AssetCollector $assetCollector)
-    {
+    public function __construct(
+        #[Autowire(service: 'cache.tx_assetcollector')]
+        private readonly FrontendInterface $cache,
+        private readonly AssetCollector $assetCollector,
+        private readonly EventDispatcherInterface $eventDispatcher
+    ) {
     }
 
     /**
@@ -151,6 +158,9 @@ class AssetRenderer
         $identifier = $cacheDataCollector->getPageCacheIdentifier();
         $cacheTags = array_map(fn (CacheTag $cacheTag) => $cacheTag->name, $cacheDataCollector->getCacheTags());
         $cacheTimeout = $cacheDataCollector->resolveLifetime();
+        $beforeDataAreAddedToCacheEvent = new BeforeDataAreAddedToCacheEvent($request, $cacheTags);
+        $this->eventDispatcher->dispatch($beforeDataAreAddedToCacheEvent);
+        $cacheTags = $beforeDataAreAddedToCacheEvent->cacheTags;
         $this->cache->set($identifier, $data, $cacheTags, $cacheTimeout);
     }
 
