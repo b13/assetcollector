@@ -20,7 +20,7 @@
 			"extension-key": "assetcollector",
 			"web-dir": ".Build/Web",
 			"app-dir": ".Build",
-			"version": "4.0.1",
+			"version": "4.1.0",
 			"Package": {
 				"providesPackages": {}
 			}
