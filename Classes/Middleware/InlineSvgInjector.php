@@ -31,7 +31,9 @@ class InlineSvgInjector implements MiddlewareInterface
     public function __construct(
         #[Autowire(service: 'cache.tx_assetcollector')]
         private readonly FrontendInterface $cache,
-        private readonly AssetCollector $assetCollector
+        private readonly AssetCollector $assetCollector,
+        #[Autowire(service: 'cache.tx_assetcollector_registry')]
+        private readonly FrontendInterface $registryCache
     ) {
     }
 
@@ -41,11 +43,11 @@ class InlineSvgInjector implements MiddlewareInterface
         if ($response instanceof NullResponse) {
             return $response;
         }
-        $svgAsset = $this->getInlineSvgAsset($request);
+        $body = $response->getBody();
+        $body->rewind();
+        $contents = $body->getContents();
+        $svgAsset = $this->getInlineSvgAsset($request, $contents);
         if ($svgAsset !== '') {
-            $body = $response->getBody();
-            $body->rewind();
-            $contents = $response->getBody()->getContents();
             if (str_contains($contents, '</body>')) {
                 $content = str_ireplace(
                     '</body>',
@@ -62,7 +64,7 @@ class InlineSvgInjector implements MiddlewareInterface
         return $response;
     }
 
-    protected function getInlineSvgAsset(ServerRequestInterface $request): string
+    protected function getInlineSvgAsset(ServerRequestInterface $request, string $responseBody): string
     {
         /** @var CacheDataCollector $cacheDataCollector */
         $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
@@ -74,6 +76,30 @@ class InlineSvgInjector implements MiddlewareInterface
         if (!empty($cached['xmlFiles'] ?? null) && is_array($cached['xmlFiles'])) {
             $this->assetCollector->mergeXmlFiles($cached['xmlFiles']);
         }
+        // Self-heal: re-resolve any icon referenced in the page that is not (or
+        // no longer) collected, so a desynced "tx_assetcollector" cache can never
+        // result in a page being delivered with a missing/incomplete SVG sprite.
+        $cacheIdentifier = 'icons-' . ($request->getAttribute('site')?->getIdentifier() ?? 'default');
+        // In uncached scope the TypoScript-backed registry is available – (re)persist
+        // it so it can be used as a fallback for cached requests, where TypoScript
+        // (and therefore the registry) is no longer available.
+        $liveRegistry = $this->assetCollector->getIconRegistry();
+        if ($liveRegistry !== []) {
+            $this->registryCache->set($cacheIdentifier, $liveRegistry);
+        }
+        $this->assetCollector->addReferencedIcons(
+            $responseBody,
+            fn (): array => $liveRegistry !== [] ? $liveRegistry : $this->readPersistedRegistry($cacheIdentifier)
+        );
         return $this->assetCollector->buildInlineXmlTag();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function readPersistedRegistry(string $cacheIdentifier): array
+    {
+        $persisted = $this->registryCache->has($cacheIdentifier) ? $this->registryCache->get($cacheIdentifier) : null;
+        return is_array($persisted) ? $persisted : [];
     }
 }

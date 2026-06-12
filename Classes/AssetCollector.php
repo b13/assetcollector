@@ -118,6 +118,75 @@ class AssetCollector
         return str_replace('.svg', '', basename($xmlFile));
     }
 
+    /**
+     * Make the inline SVG sprite self-healing: ensure every icon referenced in
+     * the given markup (via <use href="#icon-…">) is collected for inline
+     * rendering.
+     *
+     * The sprite is injected into the response by a middleware reading the
+     * collected files from the "tx_assetcollector" cache, which lives next to –
+     * but separate from – the page cache. If that cache ever desyncs (e.g. it is
+     * cleared while the page cache survives, or it is stored on a different
+     * backend), a fully cached page is delivered without the ViewHelpers being
+     * re-rendered, the collector ends up empty and the sprite would be missing –
+     * every icon on the page disappears until the page cache is regenerated.
+     *
+     * By re-resolving the referenced icons from the given icon registry
+     * (identifier => SVG file) we guarantee the sprite is never delivered
+     * incomplete. The registry must be passed in because the TypoScript setup is
+     * not available in cached frontend scope – the caller is responsible for
+     * providing it (see InlineSvgInjector, which persists it in a dedicated
+     * cache). An empty registry makes this a no-op, so it can never make
+     * rendering worse than before.
+     *
+     * @param \Closure(): array<string, string> $iconRegistryProvider lazily resolves
+     *        the icon identifier => SVG file map; only invoked when the page actually
+     *        references an icon that is not collected, to avoid needless cache reads
+     */
+    public function addReferencedIcons(string $markup, \Closure $iconRegistryProvider): void
+    {
+        if ($markup === '' || !preg_match_all('/(?:xlink:href|href)="#icon-([A-Za-z0-9_.-]+)"/', $markup, $matches)) {
+            return;
+        }
+        $referencedIdentifiers = array_unique($matches[1]);
+        $collectedIdentifiers = [];
+        foreach ($this->getUniqueXmlFiles() as $xmlFile) {
+            $collectedIdentifiers[$this->getIconIdentifierFromFileName($xmlFile)] = true;
+        }
+        $missingIdentifiers = array_diff($referencedIdentifiers, array_keys($collectedIdentifiers));
+        if ($missingIdentifiers === []) {
+            return;
+        }
+        $iconRegistry = $iconRegistryProvider();
+        foreach ($missingIdentifiers as $identifier) {
+            if (isset($iconRegistry[$identifier])) {
+                $this->addXmlFile($iconRegistry[$identifier]);
+            }
+        }
+    }
+
+    /**
+     * Map of icon identifier => SVG file path, built from the configured icon
+     * registry (plugin.tx_assetcollector.icons). Returns an empty array when the
+     * TypoScript setup is not available (e.g. in cached frontend scope).
+     *
+     * @return array<string, string>
+     */
+    public function getIconRegistry(): array
+    {
+        if ($this->typoScriptConfiguration === null) {
+            $this->loadTypoScript();
+        }
+        $registry = [];
+        foreach ($this->typoScriptConfiguration as $file) {
+            $file = (string)$file;
+            if ($file !== '') {
+                $registry[$this->getIconIdentifierFromFileName($file)] = $file;
+            }
+        }
+        return $registry;
+    }
+
     public function buildInlineCssTag(): string
     {
         $inlineCss = implode("\n", $this->getUniqueInlineCss());
@@ -255,9 +324,19 @@ class AssetCollector
         if ($request === null) {
             return;
         }
-        /** @var FrontendTypoScript $typoScript */
+        /** @var FrontendTypoScript|null $typoScript */
         $typoScript = $request->getAttribute('frontend.typoscript');
-        $setup = $typoScript->getSetupArray();
+        if ($typoScript === null) {
+            return;
+        }
+        // The full setup array is only available in uncached frontend scope. On a
+        // cached request getSetupArray() throws, so degrade gracefully to an empty
+        // configuration instead of breaking the request.
+        try {
+            $setup = $typoScript->getSetupArray();
+        } catch (\RuntimeException) {
+            return;
+        }
         $this->typoScriptConfiguration = $setup['plugin.']['tx_assetcollector.']['icons.'] ?? [];
     }
 
