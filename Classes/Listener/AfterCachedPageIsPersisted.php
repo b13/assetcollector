@@ -26,6 +26,6 @@ class AfterCachedPageIsPersisted
 
     public function __invoke(AfterCachedPageIsPersistedEvent $event)
     {
-        $this->assetRenderer->collectInlineAssets($event->getRequest());
+        $this->assetRenderer->collectInlineAssets($event->getRequest(), $event->getCacheLifetime());
     }
 }
