@@ -114,7 +114,7 @@ class AssetRenderer
      *
      * Then, the full information is again stored in the "b13/assetcollector" bucket.
      */
-    public function collectInlineAssets(ServerRequestInterface $serverRequest): void
+    public function collectInlineAssets(ServerRequestInterface $serverRequest, int $pageCacheLifeTime): void
     {
         $cached = $this->getFromCached($serverRequest);
         if (!empty($cached['jsFiles']) && is_array($cached['jsFiles'])) {
@@ -137,7 +137,7 @@ class AssetRenderer
             'inlineCss' => $this->assetCollector->getUniqueInlineCss(),
             'xmlFiles' => $this->assetCollector->getUniqueXmlFiles(),
         ];
-        $this->addToCached($serverRequest, $cached);
+        $this->addToCached($serverRequest, $cached, $pageCacheLifeTime);
     }
 
     protected function getFromCached(ServerRequestInterface $request): array
@@ -151,17 +151,16 @@ class AssetRenderer
         return [];
     }
 
-    protected function addToCached(ServerRequestInterface $request, array $data): void
+    protected function addToCached(ServerRequestInterface $request, array $data, int $pageCacheLifeTime): void
     {
         /** @var CacheDataCollector $cacheDataCollector */
         $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
         $identifier = $cacheDataCollector->getPageCacheIdentifier();
         $cacheTags = array_map(fn (CacheTag $cacheTag) => $cacheTag->name, $cacheDataCollector->getCacheTags());
-        $cacheTimeout = $cacheDataCollector->resolveLifetime();
         $beforeDataAreAddedToCacheEvent = new BeforeDataAreAddedToCacheEvent($request, $cacheTags);
         $this->eventDispatcher->dispatch($beforeDataAreAddedToCacheEvent);
         $cacheTags = $beforeDataAreAddedToCacheEvent->cacheTags;
-        $this->cache->set($identifier, $data, $cacheTags, $cacheTimeout);
+        $this->cache->set($identifier, $data, $cacheTags, $pageCacheLifeTime);
     }
 
     /**
