@@ -145,10 +145,10 @@ class AssetRenderer
         /** @var CacheDataCollector $cacheDataCollector */
         $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
         $identifier = $cacheDataCollector->getPageCacheIdentifier();
-        if ($this->cache->has($identifier)) {
-            return $this->cache->get($identifier);
-        }
-        return [];
+        // get() already reports a miss by returning false, so asking has() first only costs
+        // a second round trip to the cache backend on every request.
+        $cached = $this->cache->get($identifier);
+        return is_array($cached) ? $cached : [];
     }
 
     protected function addToCached(ServerRequestInterface $request, array $data, int $pageCacheLifeTime): void
