@@ -67,9 +67,11 @@ class InlineSvgInjector implements MiddlewareInterface
         /** @var CacheDataCollector $cacheDataCollector */
         $cacheDataCollector = $request->getAttribute('frontend.cache.collector');
         $identifier = $cacheDataCollector->getPageCacheIdentifier();
-        $cached = [];
-        if ($this->cache->has($identifier)) {
-            $cached = $this->cache->get($identifier);
+        // get() already reports a miss by returning false, so asking has() first only costs
+        // a second round trip to the cache backend on every request.
+        $cached = $this->cache->get($identifier);
+        if (!is_array($cached)) {
+            $cached = [];
         }
         if (!empty($cached['xmlFiles'] ?? null) && is_array($cached['xmlFiles'])) {
             $this->assetCollector->mergeXmlFiles($cached['xmlFiles']);
